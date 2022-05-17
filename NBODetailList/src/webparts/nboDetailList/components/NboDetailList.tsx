@@ -427,7 +427,7 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
     let Subject;
     let Body;
     //Email Notification Settings.
-    const emailNoficationSettings: any[] = await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.emailNotificationSettings).items.filter("Title eq 'NBO'").get();
+    const emailNoficationSettings: any[] = await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.emailNotificationSettings).items.filter("Title eq 'NBOCompliance'").get();
     //console.log(emailNoficationSettings);
     Subject = emailNoficationSettings[0].Subject;
     Body = emailNoficationSettings[0].Body;
