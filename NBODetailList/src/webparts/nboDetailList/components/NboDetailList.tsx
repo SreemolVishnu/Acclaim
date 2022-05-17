@@ -1009,7 +1009,7 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
     const NBODetails: IIconProps = { iconName: 'BulletedListMirrored' };
     const midBar: IIconProps = { iconName: 'BulletedListBulletMirrored' };
     return (
-      <div className={styles.nboDetailList} >
+      <><div className={styles.nboDetailList}>
         <div style={{ display: "flex" }}>
           <div>
             <CommandButton
@@ -1017,15 +1017,14 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
               text="New"
               primary={true}
               style={{ color: "#25ddd0" }}
-              split
-            />
+              split />
 
           </div>
           {/* <CommandButton
-            iconProps={midBar}
-            style={{ color: "#25ddd0" }}
-            split
-          /> */}
+      iconProps={midBar}
+      style={{ color: "#25ddd0" }}
+      split
+    /> */}
           <div>
             <CommandButton
               iconProps={NBODetails}
@@ -1035,254 +1034,12 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
               splitButtonAriaLabel="See 2 options"
               aria-roledescription="split button"
               menuProps={menuProps}
-              style={{ color: "#25ddd0" }}
-            />
+              style={{ color: "#25ddd0" }} />
           </div>
         </div>
 
 
-        <div>
-          <Panel
-            isOpen={this.state.hideDialog}
-            onDismiss={this._dialogCloseButton}
-            headerText="Edit NBO PineLine"
-            closeButtonAriaLabel="Close"
-            isFooterAtBottom={true}
-            type={PanelType.medium}
-          >
 
-            <TextField autoComplete="off" required={true} label="Prospect Legal Name " value={this.state.clientName} onChange={this.clientNameChange} disabled={this.teamType == "Compliance Team" ? true : false}></TextField>
-            <Dropdown id="t3"
-              required={true}
-              selectedKey={this.state.sourceKey}
-              placeholder="Select an option"
-              options={this.state.sourceItems}
-              onChanged={this._drpdwnChangeSource} style={{ width: "100%" }}
-              label="How did we get this prospect?"
-              disabled={this.teamType == "Compliance Team" ? true : false}
-            />
-            <Dropdown id="t3"
-              required={true}
-              selectedKey={this.state.industryKey}
-              placeholder="Select an option"
-              options={this.state.industryItems}
-              onChanged={this._drpdwnIndustry}
-              label="Which industry does this prospect belong to?"
-              disabled={this.teamType == "Compliance Team" ? true : false}
-            />
-
-            <Dropdown id="t3"
-              required={true}
-              selectedKey={this.state.classOfInsuranceKey}
-              placeholder="Select an option"
-              options={this.state.classOfInsuranceItems}
-              onChanged={this._drpdwnClassOfInsurance}
-              label="Which class of insurance is the prospect enquiring?"
-              disabled={this.teamType == "Compliance Team" ? true : false}
-            />
-            <TextField autoComplete="off" label="What is the estimated premium amount in SGD?" type="number" value={this.state.estimatedPremium} onChange={this._estimatedPremiumChange} disabled={this.teamType == "Compliance Team" ? true : false}></TextField>
-            <Dropdown id="t3"
-              required={true}
-              selectedKey={this.state.brokerageKey}
-              placeholder="Select an option"
-              options={this.state.brokeragePercentageItems}
-              onChanged={this._drpdwnBrokerage} style={{ width: "100%" }}
-              label="What is the brokerage %?"
-              disabled={this.teamType == "Compliance Team" ? true : false}
-            />
-            <TextField autoComplete="off" label="What are the fees amount?" type="number" value={this.state.feesIfAny} onChange={this._feesIfAnyChange} disabled={this.teamType == "Compliance Team" ? true : false}></TextField>
-            <DatePicker label="When is the projected policy renewal date?"
-              value={this.state.estimatedStartDate}
-              //  hidden={this.state.hideDueDate}
-              onSelectDate={this._estimateDateChange}
-              // minDate={this.state.dueDateForBindingApprovalLifeCycle}
-              placeholder="Select a date..."
-              ariaLabel="Select a date"
-              disabled={this.teamType == "Compliance Team" ? true : false}
-            // formatDate={this._onFormatDate}
-            />
-            <TextField autoComplete="off" label="Comments on the deal" multiline placeholder="" value={this.state.comments}
-              onChange={this._commentsChange} disabled={this.teamType == "Compliance Team" ? true : false}></TextField>
-            <Dropdown id="t3"
-              required={true}
-              selectedKey={this.state.NB0StageKey}
-              placeholder="Select an option"
-              options={this.state.NBOStageItems}
-              onChanged={this._drpdwnNBOStage}
-              label="NBO stage"
-              disabled={this.teamType == "Compliance Team" ? true : false}
-            />
-            <Dropdown id="t3"
-              required={true}
-              selectedKey={this.state.complianceCleared}
-              placeholder="Select an option"
-              options={ComplianceCleared}
-              onChanged={this._drpdwnComplianceCleared}
-              label="Complaince Cleared"
-              disabled={this.teamType == "Compliance Team" ? false : true}
-            />
-            <div style={{ marginTop: "10%" }}>
-              <div style={{ display: this.state.showDocInPanel }}>
-                <div>
-                  <ToastContainer />
-                </div>
-              </div>
-            </div>
-            <div style={{ marginTop: "10%" }}>
-              <PrimaryButton onClick={this._updateNBOPipeline}>Update</PrimaryButton>
-              <PrimaryButton onClick={this._dialogCloseButton} style={{ marginLeft: "5px" }} >Cancel</PrimaryButton>
-            </div>
-          </Panel>
-        </div>
-        <div style={{ display: this.state.AddNBO }} className={styles.nboAddDiv}>
-          <Modal
-            isOpen={this.state.showReviewModal}
-            onDismiss={this._closeModal}
-            containerClassName={contentStyles.container}>
-            {/* header */}
-            <div style={{ display: "flex", backgroundColor: "#008f85", }}>
-              <h1 style={{ marginLeft: "35%", color: "white" }}>NB Oppurtunity Form</h1>
-              <div style={{ marginLeft: "35%" }}>
-                <IconButton
-                  iconProps={CancelIcon}
-                  ariaLabel="Close popup modal"
-                  onClick={this._closeModal}
-                  styles={iconButtonStyles}
-                />
-              </div>
-            </div>
-            {/* body */}
-            <div style={{ padding: "17px 7px 11px 25px", border: "1px solid #25ddd0" }}>
-              <div style={{ marginLeft: "10px", marginRight: "10px" }}> <TextField autoComplete="off" label="Prospect Legal Name " required={true} value={this.state.clientName} onChange={this.clientNameChange}></TextField></div>
-              <div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px" }}>{this.validator.message("subContractor", this.state.clientName, "required")}{" "}</div>
-              <div style={{ marginLeft: "10px", marginRight: "10px", display: "flex", marginTop: "27px", marginBottom: "24px" }}>
-                <div>
-                  <Dropdown id="t3"
-                    required={true}
-                    selectedKey={this.state.groupNamekey}
-                    placeholder="Select a group"
-                    options={this.state.groupItems}
-                    onChanged={this._drpdwnGroupName}
-                    label="Select the group?"
-                    style={{ width: "100%" }}
-                  />
-                  <div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px" }}>{this.validator.message("groupName", this.state.groupName, "required")}{" "}</div>
-                </div>
-                <div style={{ marginLeft: "20px", }}>
-                  <Dropdown id="t3"
-                    required={true}
-                    selectedKey={this.state.sourceKey}
-                    placeholder="Select an option"
-                    options={this.state.sourceItems}
-                    onChanged={this._drpdwnChangeSource}
-                    label="How did we get this prospect?"
-                    style={{ width: "100%" }}
-                  />
-                  <div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px" }}>{this.validator.message("sourceKey", this.state.sourceKey, "required")}{" "}</div>
-                </div>
-                <div style={{ marginLeft: "10px", }}>
-                  <Dropdown id="t3"
-                    required={true}
-                    selectedKey={this.state.industryKey}
-                    placeholder="Select an option"
-                    options={this.state.industryItems}
-                    onChanged={this._drpdwnIndustry} style={{ width: "100%" }}
-                    label="Which industry does this prospect belong to?"
-
-                  />
-                  <div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px" }}>{this.validator.message("industryKey", this.state.industryKey, "required")}{" "}</div>
-                </div>
-                <div style={{ marginLeft: "10px", }}><Dropdown id="t3"
-                  required={true}
-                  selectedKey={this.state.classOfInsuranceKey}
-                  placeholder="Select an option"
-                  options={this.state.classOfInsuranceItems}
-                  onChanged={this._drpdwnClassOfInsurance} style={{ width: "100%" }}
-                  label="Which class of insurance is the prospect enquiring?"
-                />
-                  <div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px" }}>{this.validator.message("classOfInsuranceKey", this.state.classOfInsuranceKey, "required")}{" "}</div>
-                </div>
-
-              </div>
-              <hr style={{ backgroundColor: "#008f85", height: "1.5px" }} />
-              <div style={{ marginLeft: "10px", marginRight: "10px", display: "flex", marginTop: "27px", marginBottom: "24px" }}>
-                <div style={{}}> <TextField autoComplete="off" label="What is the estimated premium amount in SGD?" value={this.state.estimatedPremium} type='number' required={true} onChange={this._estimatedPremiumChange}>
-                </TextField><div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px" }}>{this.validator.message("estimatedPremium", this.state.estimatedPremium, "required|numeric")}{" "}</div></div>
-
-                <div style={{ marginLeft: "10px", }}>
-                  <Dropdown id="t3"
-                    required={true}
-                    selectedKey={this.state.brokerageKey}
-                    placeholder="Select an option"
-                    options={this.state.brokeragePercentageItems}
-                    onChanged={this._drpdwnBrokerage} style={{ width: "100%" }}
-                    label="What is the brokerage %?"
-                  />
-                  <div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px" }}>{this.validator.message("brokerageKey", this.state.brokerageKey, "required")}{" "}</div>
-                </div>
-                <div style={{ marginLeft: "10px", }}>
-                  <TextField autoComplete="off" label="What are the fees amount?" type='number' value={this.state.feesIfAny} onChange={this._feesIfAnyChange}>
-                  </TextField></div>
-                <div style={{ marginLeft: "10px", marginRight: "10px" }}>
-                  <DatePicker label="When is the projected policy renewal date?"
-                    value={this.state.estimatedStartDate}
-                    //  hidden={this.state.hideDueDate}
-                    onSelectDate={this._estimateDateChange}
-                    // minDate={this.state.dueDateForBindingApprovalLifeCycle}
-                    placeholder="Select a date..."
-                    ariaLabel="Select a date"
-                  // formatDate={this._onFormatDate}
-                  />
-                  <div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px" }}>{this.validator.message("estimatedStartDate", this.state.estimatedStartDate, "required")}{" "}</div>
-                </div>
-              </div>
-              <hr style={{ backgroundColor: "#008f85", marginTop: "7px", height: "1.5px" }} />
-              <div >
-                <div style={{ width: "50%", display: "flex", marginTop: "17px" }}>
-                  <input type="file" name="myFile" id="newfile" style={{ marginRight: "-13px", marginLeft: "12px" }} onChange={(e) => this._uploadadditional(e)} ></input>
-                  <PrimaryButton onClick={this._showExternalGrid} style={{ backgroundColor: "#008f85", color: "White", marginLeft: "48px" }}>Upload</PrimaryButton>
-                </div>
-                <div style={{ display: this.state.externalArrayDiv, marginLeft: "13px", marginTop: "7px" }}>
-                  <table className={styles.tableModal}  >
-                    <tr style={{ background: "#008f85" }}>
-                      <th style={{ padding: "5px 10px" }}>Slno</th>
-                      <th style={{ padding: "5px 10px" }}>Document Name</th>
-                      <th style={{ padding: "5px 10px" }}>Delete</th>
-                    </tr>
-                    {this.state.externalArray.map((items, key) => {
-                      return (
-                        <tr style={{ borderBottom: "1px solid #b6ede83b", backgroundColor: "#daebea" }}>
-                          <td style={{ padding: "5px 10px" }}>{key + 1}</td>
-                          <td style={{ padding: "5px 10px" }}>{items.documentName}</td>
-                          <td style={{ padding: "5px 10px" }}><IconButton iconProps={DeleteIcon} title="Delete" ariaLabel="Delete" onClick={() => this._openDeleteConfirmation(items, key)} /></td>
-                        </tr>
-                      );
-                    })}
-                  </table>
-                </div>
-              </div>
-              <hr style={{ marginTop: "7px", backgroundColor: "#008f85", height: "1.5px" }} />
-              <div style={{ marginLeft: "10px", marginRight: "10px", marginBottom: " 10px", marginTop: "27px" }}>
-                <TextField autoComplete="off" label="Comments on the deal" multiline placeholder="" value={this.state.comments} onChange={this._commentsChange}></TextField></div>
-              <div style={{ marginLeft: "80%" }}><PrimaryButton text='Submit' onClick={this._submitNBOPipeline} style={{ backgroundColor: "#008f85", color: "White" }} />
-                <PrimaryButton onClick={this._dialogCloseButton} style={{ marginLeft: "7px", backgroundColor: "#008f85", color: "White" }} >Cancel</PrimaryButton></div>
-            </div>
-            {/* footer */}
-            <div style={{ display: this.state.messageBar }}>
-              <ToastContainer
-                position="bottom-center"
-                autoClose={10000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick={false}
-                rtl={false}
-                pauseOnFocusLoss
-                draggable={false}
-                pauseOnHover={false}
-              />
-            </div>
-          </Modal>
-        </div>
 
         <div style={{ display: this.state.divForSame, marginTop: "10px" }}>
           <table style={{ overflowX: "scroll", display: this.state.docRepositoryItems.length == 0 ? "none" : "" }}>
@@ -1340,7 +1097,6 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
               onChange={(page) => this._getPage(page)}
               limiter={10}
               limiterIcon={"Emoji12"} // Optional
-
             />
           </div>
         </div>
@@ -1405,8 +1161,230 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
             />
           </div>
         </div>
-      </div>
+      </div><div style={{ display: this.state.AddNBO }} className={styles.nboAddDiv}>
+          <Modal
+            isOpen={this.state.showReviewModal}
+            onDismiss={this._closeModal}
+            containerClassName={contentStyles.container}>
+            {/* header */}
+            <div style={{ display: "flex", backgroundColor: "#008f85", }}>
+              <h1 style={{ marginLeft: "35%", color: "white" }}>NB Oppurtunity Form</h1>
+              <div style={{ marginLeft: "35%" }}>
+                <IconButton
+                  iconProps={CancelIcon}
+                  ariaLabel="Close popup modal"
+                  onClick={this._closeModal}
+                  styles={iconButtonStyles} />
+              </div>
+            </div>
+            {/* body */}
+            <div style={{ padding: "17px 7px 11px 25px", border: "1px solid #25ddd0" }}>
+              <div style={{ marginLeft: "10px", marginRight: "10px" }}> <TextField autoComplete="off" label="Prospect Legal Name " required={true} value={this.state.clientName} onChange={this.clientNameChange}></TextField></div>
+              <div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px" }}>{this.validator.message("subContractor", this.state.clientName, "required")}{" "}</div>
+              <div style={{ marginLeft: "10px", marginRight: "10px", display: "flex", marginTop: "27px", marginBottom: "24px" }}>
+                <div>
+                  <Dropdown id="t3"
+                    required={true}
+                    selectedKey={this.state.groupNamekey}
+                    placeholder="Select a group"
+                    options={this.state.groupItems}
+                    onChanged={this._drpdwnGroupName}
+                    label="Select the group?"
+                    style={{ width: "100%" }} />
+                  <div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px" }}>{this.validator.message("groupName", this.state.groupName, "required")}{" "}</div>
+                </div>
+                <div style={{ marginLeft: "20px", }}>
+                  <Dropdown id="t3"
+                    required={true}
+                    selectedKey={this.state.sourceKey}
+                    placeholder="Select an option"
+                    options={this.state.sourceItems}
+                    onChanged={this._drpdwnChangeSource}
+                    label="How did we get this prospect?"
+                    style={{ width: "100%" }} />
+                  <div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px" }}>{this.validator.message("sourceKey", this.state.sourceKey, "required")}{" "}</div>
+                </div>
+                <div style={{ marginLeft: "10px", }}>
+                  <Dropdown id="t3"
+                    required={true}
+                    selectedKey={this.state.industryKey}
+                    placeholder="Select an option"
+                    options={this.state.industryItems}
+                    onChanged={this._drpdwnIndustry} style={{ width: "100%" }}
+                    label="Which industry does this prospect belong to?" />
+                  <div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px" }}>{this.validator.message("industryKey", this.state.industryKey, "required")}{" "}</div>
+                </div>
+                <div style={{ marginLeft: "10px", }}><Dropdown id="t3"
+                  required={true}
+                  selectedKey={this.state.classOfInsuranceKey}
+                  placeholder="Select an option"
+                  options={this.state.classOfInsuranceItems}
+                  onChanged={this._drpdwnClassOfInsurance} style={{ width: "100%" }}
+                  label="Which class of insurance is the prospect enquiring?" />
+                  <div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px" }}>{this.validator.message("classOfInsuranceKey", this.state.classOfInsuranceKey, "required")}{" "}</div>
+                </div>
 
+              </div>
+              <hr style={{ backgroundColor: "#008f85", height: "1.5px" }} />
+              <div style={{ marginLeft: "10px", marginRight: "10px", display: "flex", marginTop: "27px", marginBottom: "24px" }}>
+                <div style={{}}> <TextField autoComplete="off" label="What is the estimated premium amount in SGD?" value={this.state.estimatedPremium} type='number' required={true} onChange={this._estimatedPremiumChange}>
+                </TextField><div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px" }}>{this.validator.message("estimatedPremium", this.state.estimatedPremium, "required|numeric")}{" "}</div></div>
+
+                <div style={{ marginLeft: "10px", }}>
+                  <Dropdown id="t3"
+                    required={true}
+                    selectedKey={this.state.brokerageKey}
+                    placeholder="Select an option"
+                    options={this.state.brokeragePercentageItems}
+                    onChanged={this._drpdwnBrokerage} style={{ width: "100%" }}
+                    label="What is the brokerage %?" />
+                  <div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px" }}>{this.validator.message("brokerageKey", this.state.brokerageKey, "required")}{" "}</div>
+                </div>
+                <div style={{ marginLeft: "10px", }}>
+                  <TextField autoComplete="off" label="What are the fees amount?" type='number' value={this.state.feesIfAny} onChange={this._feesIfAnyChange}>
+                  </TextField></div>
+                <div style={{ marginLeft: "10px", marginRight: "10px" }}>
+                  <DatePicker label="When is the projected policy renewal date?"
+                    value={this.state.estimatedStartDate}
+                    //  hidden={this.state.hideDueDate}
+                    onSelectDate={this._estimateDateChange}
+                    // minDate={this.state.dueDateForBindingApprovalLifeCycle}
+                    placeholder="Select a date..."
+                    ariaLabel="Select a date" />
+                  <div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px" }}>{this.validator.message("estimatedStartDate", this.state.estimatedStartDate, "required")}{" "}</div>
+                </div>
+              </div>
+              <hr style={{ backgroundColor: "#008f85", marginTop: "7px", height: "1.5px" }} />
+              <div>
+                <div style={{ width: "50%", display: "flex", marginTop: "17px" }}>
+                  <input type="file" name="myFile" id="newfile" style={{ marginRight: "-13px", marginLeft: "12px" }} onChange={(e) => this._uploadadditional(e)}></input>
+                  <PrimaryButton onClick={this._showExternalGrid} style={{ backgroundColor: "#008f85", color: "White", marginLeft: "48px" }}>Upload</PrimaryButton>
+                </div>
+                <div style={{ display: this.state.externalArrayDiv, marginLeft: "13px", marginTop: "7px" }}>
+                  <table className={styles.tableModal}>
+                    <tr style={{ background: "#008f85" }}>
+                      <th style={{ padding: "5px 10px" }}>Slno</th>
+                      <th style={{ padding: "5px 10px" }}>Document Name</th>
+                      <th style={{ padding: "5px 10px" }}>Delete</th>
+                    </tr>
+                    {this.state.externalArray.map((items, key) => {
+                      return (
+                        <tr style={{ borderBottom: "1px solid #b6ede83b", backgroundColor: "#daebea" }}>
+                          <td style={{ padding: "5px 10px" }}>{key + 1}</td>
+                          <td style={{ padding: "5px 10px" }}>{items.documentName}</td>
+                          <td style={{ padding: "5px 10px" }}><IconButton iconProps={DeleteIcon} title="Delete" ariaLabel="Delete" onClick={() => this._openDeleteConfirmation(items, key)} /></td>
+                        </tr>
+                      );
+                    })}
+                  </table>
+                </div>
+              </div>
+              <hr style={{ marginTop: "7px", backgroundColor: "#008f85", height: "1.5px" }} />
+              <div style={{ marginLeft: "10px", marginRight: "10px", marginBottom: " 10px", marginTop: "27px" }}>
+                <TextField autoComplete="off" label="Comments on the deal" multiline placeholder="" value={this.state.comments} onChange={this._commentsChange}></TextField></div>
+              <div style={{ marginLeft: "80%" }}><PrimaryButton text='Submit' onClick={this._submitNBOPipeline} style={{ backgroundColor: "#008f85", color: "White" }} />
+                <PrimaryButton onClick={this._dialogCloseButton} style={{ marginLeft: "7px", backgroundColor: "#008f85", color: "White" }}>Cancel</PrimaryButton></div>
+            </div>
+            {/* footer */}
+            <div style={{ display: this.state.messageBar }}>
+              <ToastContainer
+                position="bottom-center"
+                autoClose={10000}
+                hideProgressBar={false}
+                newestOnTop={false}
+                closeOnClick={false}
+                rtl={false}
+                pauseOnFocusLoss
+                draggable={false}
+                pauseOnHover={false} />
+            </div>
+          </Modal>
+        </div>
+        <div>
+          <Panel
+            isOpen={this.state.hideDialog}
+            onDismiss={this._dialogCloseButton}
+            headerText="Edit NBO PineLine"
+            closeButtonAriaLabel="Close"
+            isFooterAtBottom={true}
+            type={PanelType.medium}
+          >
+
+            <TextField autoComplete="off" required={true} label="Prospect Legal Name " value={this.state.clientName} onChange={this.clientNameChange} disabled={this.teamType == "Compliance Team" ? true : false}></TextField>
+            <Dropdown id="t3"
+              required={true}
+              selectedKey={this.state.sourceKey}
+              placeholder="Select an option"
+              options={this.state.sourceItems}
+              onChanged={this._drpdwnChangeSource} style={{ width: "100%" }}
+              label="How did we get this prospect?"
+              disabled={this.teamType == "Compliance Team" ? true : false} />
+            <Dropdown id="t3"
+              required={true}
+              selectedKey={this.state.industryKey}
+              placeholder="Select an option"
+              options={this.state.industryItems}
+              onChanged={this._drpdwnIndustry}
+              label="Which industry does this prospect belong to?"
+              disabled={this.teamType == "Compliance Team" ? true : false} />
+
+            <Dropdown id="t3"
+              required={true}
+              selectedKey={this.state.classOfInsuranceKey}
+              placeholder="Select an option"
+              options={this.state.classOfInsuranceItems}
+              onChanged={this._drpdwnClassOfInsurance}
+              label="Which class of insurance is the prospect enquiring?"
+              disabled={this.teamType == "Compliance Team" ? true : false} />
+            <TextField autoComplete="off" label="What is the estimated premium amount in SGD?" type="number" value={this.state.estimatedPremium} onChange={this._estimatedPremiumChange} disabled={this.teamType == "Compliance Team" ? true : false}></TextField>
+            <Dropdown id="t3"
+              required={true}
+              selectedKey={this.state.brokerageKey}
+              placeholder="Select an option"
+              options={this.state.brokeragePercentageItems}
+              onChanged={this._drpdwnBrokerage} style={{ width: "100%" }}
+              label="What is the brokerage %?"
+              disabled={this.teamType == "Compliance Team" ? true : false} />
+            <TextField autoComplete="off" label="What are the fees amount?" type="number" value={this.state.feesIfAny} onChange={this._feesIfAnyChange} disabled={this.teamType == "Compliance Team" ? true : false}></TextField>
+            <DatePicker label="When is the projected policy renewal date?"
+              value={this.state.estimatedStartDate}
+              //  hidden={this.state.hideDueDate}
+              onSelectDate={this._estimateDateChange}
+              // minDate={this.state.dueDateForBindingApprovalLifeCycle}
+              placeholder="Select a date..."
+              ariaLabel="Select a date"
+              disabled={this.teamType == "Compliance Team" ? true : false} />
+            <TextField autoComplete="off" label="Comments on the deal" multiline placeholder="" value={this.state.comments}
+              onChange={this._commentsChange} disabled={this.teamType == "Compliance Team" ? true : false}></TextField>
+            <Dropdown id="t3"
+              required={true}
+              selectedKey={this.state.NB0StageKey}
+              placeholder="Select an option"
+              options={this.state.NBOStageItems}
+              onChanged={this._drpdwnNBOStage}
+              label="NBO stage"
+              disabled={this.teamType == "Compliance Team" ? true : false} />
+            <Dropdown id="t3"
+              required={true}
+              selectedKey={this.state.complianceCleared}
+              placeholder="Select an option"
+              options={ComplianceCleared}
+              onChanged={this._drpdwnComplianceCleared}
+              label="Complaince Cleared"
+              disabled={this.teamType == "Compliance Team" ? false : true} />
+            <div style={{ marginTop: "10%" }}>
+              <div style={{ display: this.state.showDocInPanel }}>
+                <div>
+                  <ToastContainer />
+                </div>
+              </div>
+            </div>
+            <div style={{ marginTop: "10%" }}>
+              <PrimaryButton onClick={this._updateNBOPipeline}>Update</PrimaryButton>
+              <PrimaryButton onClick={this._dialogCloseButton} style={{ marginLeft: "5px" }}>Cancel</PrimaryButton>
+            </div>
+          </Panel>
+        </div></>
     );
   }
 }
