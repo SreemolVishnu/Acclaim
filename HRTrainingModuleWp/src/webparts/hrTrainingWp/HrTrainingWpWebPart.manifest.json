@@ -1,0 +1,41 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "dbd5854f-3a9a-4cf2-8829-bc8d24690873",
+  "alias": "HrTrainingWpWebPart",
+  "componentType": "WebPart",
+  // The "*" signifies that the version should be taken from the package.json
+  "version": "*",
+  "manifestVersion": 2,
+  // If true, the component can only be installed on sites where Custom Script is allowed.
+  // Components that allow authors to embed arbitrary script code should set this to true.
+  // https://support.office.com/en-us/article/Turn-scripting-capabilities-on-or-off-1f2c515f-5d7e-448a-9fd7-835da935584f
+  "requiresCustomScript": false,
+  "supportedHosts": [
+    "SharePointWebPart"
+  ],
+  "preconfiguredEntries": [
+    {
+      "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Other
+      "group": {
+        "default": "Other"
+      },
+      "title": {
+        "default": "HRTrainingWp"
+      },
+      "description": {
+        "default": "HRTrainingWp description"
+      },
+      "officeFabricIconFontName": "Page",
+      "properties": {
+        "description": "HRTrainingWp",
+        "hrTrainingTitles": "HRTrainingTitles",
+        "hrTrainingReports": "HRTrainingReports",
+        "TrainingModuleLibrary": "TrainingModuleLibrary",
+        "errorMessage": "Please select any core programs by clicking on the check box",
+        "statementIfNoItems": "No new core programs",
+        "labelForInstructions": "Please click on the tick box to select the Core Program and click submit. An email with the access link will be sent to you shortly.",
+        "messageBar": "Successfully submitted your selected Core Programs"
+      }
+    }
+  ]
+}

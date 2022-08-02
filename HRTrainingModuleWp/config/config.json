@@ -1,0 +1,18 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "hr-training-wp-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/hrTrainingWp/HrTrainingWpWebPart.js",
+          "manifest": "./src/webparts/hrTrainingWp/HrTrainingWpWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "HrTrainingWpWebPartStrings": "lib/webparts/hrTrainingWp/loc/{locale}.js"
+  }
+}

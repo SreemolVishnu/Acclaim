@@ -1,0 +1,214 @@
+@import '~office-ui-fabric-react/dist/sass/References.scss';
+
+
+
+.hrTrainingWp {
+  // .grid-container {
+  //   display: grid;
+  //   gap: 1px;
+  //   grid-template-columns: auto auto;
+  //   // background-color: #2196F3;
+  //   // padding: 10px;
+  // }
+
+  // .grid-item {
+  //   //background-color: rgba(255, 255, 255, 0.8);
+  //   //border: 1px solid rgba(0, 0, 0, 0.8);
+  //   padding: 2px 5px 5px 3px;
+  //   font-size: 30px;
+  //   text-align: left;
+
+  // }
+
+  // .container {
+  //   max-width: 700px;
+  //   margin: 10px 0px 2px 50px;
+  //   box-shadow: 0 2px 4px 0 rgba(19, 220, 106, 0.2), 0 25px 50px 0 rgba(0, 0, 0, 0.1);
+  //   padding: 37px 0px 32px 19px;
+  //   height: 12px;
+
+  // }
+
+  .container {
+    padding: 2em;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(10em, 1fr));
+    grid-gap: 2em;
+  }
+
+  .name {
+    width: 12em;
+    white-space: break-spaces;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 1em;
+
+
+  }
+
+  .folder {
+    height: 105px;
+    width: 100%;
+    position: relative;
+    background-color: white;
+    border: 1px solid gray;
+    border-radius: 0 6px 6px 6px;
+    box-shadow: 4px 4px 7px rgba(0, 0, 0, 0.59);
+    padding: 0.25em 0.5em;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-direction: column;
+  }
+
+  .folder:before {
+    content: "";
+    width: 50%;
+    height: 12px;
+    border-radius: 0 20px 0 0;
+    background-color: white;
+    border-top: 1px solid gray;
+    border-left: 1px solid gray;
+    border-right: 1px solid gray;
+    position: absolute;
+    top: -13px;
+    left: -1px;
+  }
+
+  .options {
+    display: flex;
+    column-gap: 1em;
+  }
+
+  .folder::after {
+    content: '';
+    position: absolute;
+    left: 0.8em;
+    width: 4em;
+    height: 5px;
+    top: -0.8em;
+    background: #498205;
+    border-radius: 0 0 5px 5px;
+  }
+
+  /* Tooltip container */
+  .tooltip {
+    position: relative;
+    display: inline-block;
+    cursor: "pointer"
+      // border-bottom: 1px dotted black; /* If you want dots under the hoverable text */
+  }
+
+  /* Tooltip text */
+  .tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: rgb(15, 8, 8);
+    color: rgb(11, 10, 10);
+    text-align: center;
+    padding: 5px 0;
+    border-radius: 6px;
+
+    /* Position the tooltip text */
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -60px;
+
+    /* Fade in tooltip */
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .tooltip .tooltiptext::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #498205 transparent transparent transparent;
+  }
+
+  .tooltip:hover .tooltiptext {
+    visibility: visible;
+  }
+
+  .row {
+    @include ms-Grid-row;
+    @include ms-fontColor-white;
+    background-color: $ms-color-themeDark;
+    padding: 20px;
+  }
+
+  .column {
+    @include ms-Grid-col;
+    @include ms-lg10;
+    @include ms-xl8;
+    @include ms-xlPush2;
+    @include ms-lgPush1;
+  }
+
+  .title {
+    @include ms-font-xl;
+    @include ms-fontColor-white;
+  }
+
+  .subTitle {
+    @include ms-font-l;
+    @include ms-fontColor-white;
+  }
+
+  .description {
+    root: {
+      display: 'inline-block',
+    }
+
+    ;
+    color: 'red';
+  }
+
+  .button {
+    // Our button
+    text-decoration: none;
+    height: 32px;
+
+    // Primary Button
+    min-width: 80px;
+    background-color: $ms-color-themePrimary;
+    border-color: $ms-color-themePrimary;
+    color: $ms-color-white;
+
+    // Basic Button
+    outline: transparent;
+    position: relative;
+    font-family: "Segoe UI WestEuropean", "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: $ms-font-size-m;
+    font-weight: $ms-font-weight-regular;
+    border-width: 0;
+    text-align: center;
+    cursor: pointer;
+    display: inline-block;
+    padding: 0 16px;
+
+    .label {
+      font-weight: $ms-font-weight-semibold;
+      font-size: $ms-font-size-m;
+      height: 32px;
+      line-height: 32px;
+      margin: 0 4px;
+      vertical-align: top;
+      display: inline-block;
+    }
+
+
+  }
+
+  .buttonStyle {
+    float: right;
+
+  }
+}
