@@ -48,7 +48,17 @@
     //margin-left: 10px;
   }
 
+  .divBoxShadow {
+    box-shadow: rgba(50, 50, 93, 0.25) 0px 50px 100px -20px, rgba(0, 0, 0, 0.3) 0px 30px 60px -30px, rgba(10, 37, 64, 0.35) 0px -2px 6px 0px inset;
+  }
 
+  .coupon {
+    border: 5px dotted #bbb;
+    width: 80%;
+    border-radius: 15px;
+    margin: 0 auto;
+    max-width: 600px;
+  }
 
 
   .row {
@@ -117,5 +127,28 @@
   }
 
 
+  .container {
+    padding: 2px 16px;
+    background-color: #f1f1f1;
+  }
+
+  .Heading {
+    font-size: 20px;
+    text-align: center;
+    color: #008f85;
+    margin-bottom: 10px;
+    border: 1px solid;
+    border-radius: 10px;
+    width: auto;
+  }
+
+  .promo {
+    background: #ccc;
+    padding: 3px;
+  }
+
+  .expire {
+    color: red;
+  }
 
 }
