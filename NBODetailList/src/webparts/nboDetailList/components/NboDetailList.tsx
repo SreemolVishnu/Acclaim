@@ -69,6 +69,8 @@ export interface INboDetailListState {
   groupItems: any[];
   groupName: string;
   groupNamekey: any;
+  departmentText: string;
+  departmentkey: any;
   divForOtherDepts: string;
   divForSame: string;
   noItemErrorMsg: string;
@@ -84,6 +86,9 @@ export interface INboDetailListState {
   confirmDialog: boolean;
   itemIDForDelete: number;
   isNBOAdmin: string;
+  oppurtunityTypeKey: string;
+  oppurtunityType: string;
+  sortType: string;
 }
 export interface IDocument {
   Title: string;
@@ -93,6 +98,7 @@ export interface IDocument {
 }
 
 const EditIcon: IIconProps = { iconName: 'Edit' };
+const FilterIcon: IIconProps = { iconName: 'Sort' };
 const DeleteIcon: IIconProps = { iconName: 'Delete' };
 const AddIcon: IIconProps = { iconName: 'Add' };
 const CancelIcon: IIconProps = { iconName: 'Cancel' };
@@ -125,6 +131,7 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
   private _columns: IColumn[];
   private myfileadditional;
   private currentUserEmail;
+  private currentUserName;
   private _selection: Selection;
   private team;
   private itemDepartment;
@@ -133,8 +140,8 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
   private content;
   private compliance;
   private sortedArray = [];
-  private pageSize = 30;
-  ;
+  private pageSize: number = 30;
+
   //private teamTypeArray: any[];
   private reqWeb = Web(window.location.protocol + "//" + window.location.hostname + "/sites/Acclaim");
   constructor(props: INboDetailListProps) {
@@ -206,7 +213,12 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
       divForCurrentUser: "none",
       confirmDialog: true,
       itemIDForDelete: null,
-      isNBOAdmin: ""
+      isNBOAdmin: "",
+      departmentText: "",
+      departmentkey: "",
+      oppurtunityTypeKey: "",
+      oppurtunityType: "",
+      sortType: "",
     };
 
     this._drpdwnChangeSource = this._drpdwnChangeSource.bind(this);
@@ -242,6 +254,8 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
     this.sameDept = this.sameDept.bind(this);
     this.updateComplianceFromMail = this.updateComplianceFromMail.bind(this);
     this._showExternalGridForComplianceUpload = this._showExternalGridForComplianceUpload.bind(this);
+    this._selectDepartmentFromSameDepartmentTab = this._selectDepartmentFromSameDepartmentTab.bind(this);
+    this._drpdwnOppurtunityType = this._drpdwnOppurtunityType.bind(this);
   }
   public componentWillMount = async () => {
     this.validator = new SimpleReactValidator({
@@ -264,8 +278,9 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
         displayFromMail: "",
         showReviewModalFromMailView: true,
       });
+
       await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
-        select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").filter("ID eq '" + this.nbolid + "'").get().then(docProfileItems => {
+        select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,WeightedBrokerage,OpportunityType").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").filter("ID eq '" + this.nbolid + "'").get().then(docProfileItems => {
           this.sortedArray = _.orderBy(docProfileItems, 'ID', ['desc']);
           this.setState({
             docRepositoryItems: this.sortedArray,
@@ -296,6 +311,7 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
     await sp.web.currentUser.get().then(currentUser => {
       console.log(currentUser);
       this.currentUserEmail = currentUser.Email;
+      this.currentUserName = currentUser.Title;
     });
     // await this.GetUserProperties();
     //dropdownbinding
@@ -442,7 +458,7 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
 
     });
     sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
-      select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").filter("Author/EMail eq '" + this.currentUserEmail + "'").get().then(docProfileItems => {
+      select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,WeightedBrokerage,OpportunityType").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").filter("Author/EMail eq '" + this.currentUserEmail + "'").get().then(docProfileItems => {
         this.sortedArray = _.orderBy(docProfileItems, 'ID', ['desc']);
         this.setState({
           docRepositoryItems: this.sortedArray,
@@ -462,17 +478,15 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
     });
 
   }
-  // sending Email for owners
+  // sending Email for managers
   private async _sendAnEmailUsingMSGraph(nbolid): Promise<void> {
     let email = [];
     await sp.profiles.myProperties.get().then(function (result) {
       var userProperties = result.UserProfileProperties;
       var userPropertyValues = "";
-
       forEach(function (property) {
         userPropertyValues += property.Key + " - " + property.Value + "<br/>";
       });
-
       //document.getElementById("spUserProfileProperties").innerHTML = userPropertyValues;
       console.log("userProperties", userProperties);
       for (let k = 0; k < userProperties.length; k++) {
@@ -499,10 +513,11 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
     let link = `<a href=${window.location.protocol + "//" + window.location.hostname + this.props.siteUrl + "/SitePages/NboPipeline.aspx?nbolid=" + nbolid}>NBOPipeline</a>`;
     //Replacing the email body with current values
     let replacedSubject1 = replaceString(Subject, '[NBOTitle]', this.state.clientName);
-    let replaceBody = replaceString(Body, '[NBOTitle]', this.state.clientName);
+    let replaceBodyStaff = replaceString(Body, '[staff]', this.currentUserName);
+    let replaceBody = replaceString(replaceBodyStaff, '[ProspectName]', this.state.clientName);
     let replaceBodyWithManagerName = replaceString(replaceBody, '[ManagerName]', user.Title);
     let replacelink = replaceString(replaceBodyWithManagerName, '[NBOPipeline]', link);
-    let FinalBody = replacelink;
+    let FinalBody1 = replacelink;
     //mail sending
     //  if (this.status == "Yes") {
     //Check if TextField value is empty or not  
@@ -513,22 +528,16 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
           "subject": replacedSubject1,
           "body": {
             "contentType": "HTML",
-            "content": FinalBody
+            "content": FinalBody1
           },
           "toRecipients": [
             {
               "emailAddress": {
                 "address": email[1],
+
               }
             }
           ],
-          // "ccRecipients": [
-          //   {
-          //     "emailAddress": {
-          //       "address": "dev14@ccsdev01.onmicrosoft.com"
-          //     }
-          //   }
-          // ],
         }
       };
       //Send Email uisng MS Graph  
@@ -839,6 +848,8 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
       divForDocumentUploadCompArrayDiv: "none",
       tempArrayForExternalDocumentGrid: [],
       confirmDialog: true,
+      oppurtunityTypeKey: "",
+      oppurtunityType: ""
     });
 
   }
@@ -850,74 +861,151 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
         NB0StageKey: NBOStageID[0].ID,
       });
     });
-    if (this.state.clientName != "" && this.state.sourceKey != "" && this.state.industryKey != "" && this.state.classOfInsuranceKey != "" && this.state.estimatedStartDate != "") {
+    if (this.state.clientName != "" && this.state.sourceKey != "" && this.state.industryKey != "" && this.state.classOfInsuranceKey != "" && this.state.estimatedStartDate != "" && this.state.oppurtunityType != "") {
       this.validator.hideMessages();
-      if (this.state.estimatedPremium == " ") {
+      if (this.state.oppurtunityType == "New") {
+        if (this.state.estimatedPremium == " ") {
+          this.setState({
+            estimatedPremium: "35000",
+          });
+        }
+        toast("Nbo Pipeline added successfully");
         this.setState({
-          estimatedPremium: "35000",
+          messageBar: "",
+        });
+        // alert(this.state.estimatedPremium)
+        let tempEstimatedBrokerage = (this.state.estimatedPremium * (this.state.brokerage / 100));
+        sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.add({
+          Title: this.state.clientName,
+          SourceId: this.state.sourceKey,
+          IndustryId: this.state.industryKey,
+          ClassOfInsuranceId: this.state.classOfInsuranceKey,
+          EstimatedPremium: (this.state.estimatedPremium == "" ? Number(35000) : Number(this.state.estimatedPremium)),
+          BrokeragePercentage: (this.state.brokerage == "" ? Number(15) : Number(this.state.brokerage)),
+          EstimatedStartDate: new Date(this.state.estimatedStartDate),
+          FeesIfAny: Number(this.state.feesIfAny),
+          Comments: this.state.comments,
+          Department: this.state.groupName,
+          // EstimatedBrokerage: ((this.state.estimatedPremium == "" ? Number(35000) : Number(this.state.estimatedPremium))) * Number(this.state.brokerage / 100),
+          NBOStageId: parseInt(this.state.NB0StageKey),
+          OpportunityType: this.state.oppurtunityType,
+
+        }).then(async afterInsertion => {
+          sp.web.getList(this.props.siteUrl + "/Lists/NBOLogList").items.add({
+            Title: "New Item ADD",
+            NBOPipelineID: Number(afterInsertion.data.ID),
+          });
+          // this.nbolid = afterInsertion.data.ID;
+          if (this.state.externalArray.length > 0) {
+            for (var i in this.state.externalArray) {
+              var splitted = this.state.externalArray[i].documentName.split(".");
+              let documentNameExtension = splitted.slice(0, -1).join('.') + "_" + afterInsertion.data.ID + '.' + splitted[splitted.length - 1];
+              let docName = documentNameExtension;
+              await sp.web.getFolderByServerRelativeUrl(this.props.siteUrl + "/NBODocuments/").files.add(docName, this.state.externalArray[i].content, true).then(async fileUploaded => {
+                const item = await fileUploaded.file.getItem();
+                console.log(item);
+                console.log(afterInsertion.data.ID);
+                await sp.web.getList(this.props.siteUrl + "/NBODocuments/").items.getById(item["ID"]).update({
+                  NBOPipelineIdId: afterInsertion.data.ID,
+                  Title: this.state.externalArray[i].documentName,
+                });
+
+
+              });
+            }
+          }
+          this._sendAnEmailUsingMSGraph(afterInsertion.data.ID);
+          this._sendAnEmailForComplianceGroup(afterInsertion.data.ID);
+          this.loadDocProfile();
+        }).then(afterDocumentInsertion => {
+          this.loadDocProfile();
+          setTimeout(() => {
+            this.setState({
+              showReviewModal: false,
+              groupNamekey: "",
+              sourceKey: "",
+              industryKey: "",
+              classOfInsuranceKey: "",
+              brokerageKey: "",
+              externalArrayDiv: "none",
+              oppurtunityTypeKey: "",
+              oppurtunityType: ""
+            });
+          }, 7000);
         });
       }
-      toast("Nbo Pipeline added successfully");
-      this.setState({
-        messageBar: "",
-      });
-      // alert(this.state.estimatedPremium)
-      let tempEstimatedBrokerage = (this.state.estimatedPremium * (this.state.brokerage / 100));
-      sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.add({
-        Title: this.state.clientName,
-        SourceId: this.state.sourceKey,
-        IndustryId: this.state.industryKey,
-        ClassOfInsuranceId: this.state.classOfInsuranceKey,
-        EstimatedPremium: (this.state.estimatedPremium == "" ? Number(35000) : Number(this.state.estimatedPremium)),
-        BrokeragePercentage: (this.state.brokerage == "" ? Number(15) : Number(this.state.brokerage)),
-        EstimatedStartDate: new Date(this.state.estimatedStartDate),
-        FeesIfAny: Number(this.state.feesIfAny),
-        Comments: this.state.comments,
-        Department: this.state.groupName,
-        // EstimatedBrokerage: ((this.state.estimatedPremium == "" ? Number(35000) : Number(this.state.estimatedPremium))) * Number(this.state.brokerage / 100),
-        NBOStageId: parseInt(this.state.NB0StageKey),
-      }).then(async afterInsertion => {
-        sp.web.getList(this.props.siteUrl + "/Lists/NBOLogList").items.add({
-          Title: "New Item ADD",
-          NBOPipelineID: Number(afterInsertion.data.ID),
-        });
-        // this.nbolid = afterInsertion.data.ID;
-        if (this.state.externalArray.length > 0) {
-          for (var i in this.state.externalArray) {
-            var splitted = this.state.externalArray[i].documentName.split(".");
-            let documentNameExtension = splitted.slice(0, -1).join('.') + "_" + afterInsertion.data.ID + '.' + splitted[splitted.length - 1];
-            let docName = documentNameExtension;
-            await sp.web.getFolderByServerRelativeUrl(this.props.siteUrl + "/NBODocuments/").files.add(docName, this.state.externalArray[i].content, true).then(async fileUploaded => {
-              const item = await fileUploaded.file.getItem();
-              console.log(item);
-              console.log(afterInsertion.data.ID);
-
-              await sp.web.getList(this.props.siteUrl + "/NBODocuments/").items.getById(item["ID"]).update({
-                NBOPipelineIdId: afterInsertion.data.ID,
-                Title: this.state.externalArray[i].documentName,
-              });
-
-
-            });
-          }
-        }
-        this._sendAnEmailUsingMSGraph(afterInsertion.data.ID);
-        this._sendAnEmailForComplianceGroup(afterInsertion.data.ID);
-        this.loadDocProfile();
-      }).then(afterDocumentInsertion => {
-        this.loadDocProfile();
-        setTimeout(() => {
+      else {
+        // alert(this.state.oppurtunityType)
+        if (this.state.estimatedPremium == " ") {
           this.setState({
-            showReviewModal: false,
-            groupNamekey: "",
-            sourceKey: "",
-            industryKey: "",
-            classOfInsuranceKey: "",
-            brokerageKey: "",
-            externalArrayDiv: "none"
+            estimatedPremium: "35000",
           });
-        }, 7000);
-      });
+        }
+        toast("Nbo Pipeline added successfully");
+        this.setState({
+          messageBar: "",
+        });
+        // alert(this.state.estimatedPremium)
+        let tempEstimatedBrokerage = (this.state.estimatedPremium * (this.state.brokerage / 100));
+        sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.add({
+          Title: this.state.clientName,
+          SourceId: this.state.sourceKey,
+          IndustryId: this.state.industryKey,
+          ClassOfInsuranceId: this.state.classOfInsuranceKey,
+          EstimatedPremium: (this.state.estimatedPremium == "" ? Number(35000) : Number(this.state.estimatedPremium)),
+          BrokeragePercentage: (this.state.brokerage == "" ? Number(15) : Number(this.state.brokerage)),
+          EstimatedStartDate: new Date(this.state.estimatedStartDate),
+          FeesIfAny: Number(this.state.feesIfAny),
+          Comments: this.state.comments,
+          Department: this.state.groupName,
+          // EstimatedBrokerage: ((this.state.estimatedPremium == "" ? Number(35000) : Number(this.state.estimatedPremium))) * Number(this.state.brokerage / 100),
+          NBOStageId: parseInt(this.state.NB0StageKey),
+          ComplianceCleared: "Yes",
+          OpportunityType: this.state.oppurtunityType,
+        }).then(async afterInsertion => {
+          sp.web.getList(this.props.siteUrl + "/Lists/NBOLogList").items.add({
+            Title: "New Item ADD",
+            NBOPipelineID: Number(afterInsertion.data.ID),
+          });
+          // this.nbolid = afterInsertion.data.ID;
+          if (this.state.externalArray.length > 0) {
+            for (var i in this.state.externalArray) {
+              var splitted = this.state.externalArray[i].documentName.split(".");
+              let documentNameExtension = splitted.slice(0, -1).join('.') + "_" + afterInsertion.data.ID + '.' + splitted[splitted.length - 1];
+              let docName = documentNameExtension;
+              await sp.web.getFolderByServerRelativeUrl(this.props.siteUrl + "/NBODocuments/").files.add(docName, this.state.externalArray[i].content, true).then(async fileUploaded => {
+                const item = await fileUploaded.file.getItem();
+                console.log(item);
+                console.log(afterInsertion.data.ID);
+                await sp.web.getList(this.props.siteUrl + "/NBODocuments/").items.getById(item["ID"]).update({
+                  NBOPipelineIdId: afterInsertion.data.ID,
+                  Title: this.state.externalArray[i].documentName,
+                });
+
+
+              });
+            }
+          }
+          this._sendAnEmailUsingMSGraph(afterInsertion.data.ID);
+          this.loadDocProfile();
+        }).then(afterDocumentInsertion => {
+          this.loadDocProfile();
+          setTimeout(() => {
+            this.setState({
+              showReviewModal: false,
+              groupNamekey: "",
+              sourceKey: "",
+              industryKey: "",
+              classOfInsuranceKey: "",
+              brokerageKey: "",
+              externalArrayDiv: "none",
+              oppurtunityTypeKey: "",
+              oppurtunityType: ""
+            });
+          }, 7000);
+        });
+      }
+
     }
     else {
       this.validator.showMessages();
@@ -1068,6 +1156,51 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
       groupName: option.text,
     });
   }
+  // ---------------oppurtunityType---------------------
+  public _drpdwnOppurtunityType(option: { key: any; text: any }) {
+    this.setState({
+      oppurtunityTypeKey: option.key,
+      oppurtunityType: option.text,
+    });
+  }
+  public async _selectDepartmentFromSameDepartmentTab(option: { key: any; text: any }) {
+    this.setState({
+      departmentkey: option.key,
+      departmentText: option.text,
+    });
+
+
+    //binding with selected departments
+    this.setState({
+      sameDepartmentItems: "Yes",
+      currentItemID: "",
+    });
+
+    await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
+      //select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").filter("Author/EMail ne '" + this.currentUserEmail + "' and (Department eq  '" + this.team + "')")
+      select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").filter("Department eq  '" + option.text + "'")
+      .get().then(docProfileItems => {
+        console.log("SameDept", docProfileItems);
+        this.sortedArray = _.orderBy(docProfileItems, 'ID', ['desc']);
+        this.setState({
+          docRepositoryItems: this.sortedArray,
+          items: this.sortedArray,
+          paginatedItems: this.sortedArray.slice(0, this.pageSize),
+          noItemErrorMsg: docProfileItems.length == 0 ? " " : "none",
+        });
+        console.log(this.state.docRepositoryItems);
+        if (docProfileItems.length == 0) {
+          this.setState({ noItemErrorMsg: "" });
+        }
+      });
+    this.setState({
+      divForSame: "",
+      divForCurrentUser: "none",
+      divForOtherDepts: "none",
+    });
+
+
+  }
   // ---------------Source---------------------
   public _drpdwnChangeSource(option: { key: any; text: any }) {
     this.setState({
@@ -1187,7 +1320,7 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
   }
   private _getPage(page: number) {
     // round a number up to the next largest integer.
-    const roundupPage = Math.ceil(page);
+    const roundupPage = Math.ceil(page);// Math.ceil(page);
     this.setState({
       paginatedItems: this.sortedArray.slice(roundupPage * this.pageSize, (roundupPage * this.pageSize) + this.pageSize)
     });
@@ -1314,63 +1447,103 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
   private async sameDept() {
     //alert("same dept");
     //  alert(this.team);
+    console.log("departments of current user", this.state.oppurtunityDept);
     this.setState({
       sameDepartmentItems: "Yes",
       currentItemID: "",
     });
 
+    let tempArray = [];
     await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
       //select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").filter("Author/EMail ne '" + this.currentUserEmail + "' and (Department eq  '" + this.team + "')")
-      select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").filter("Department eq  '" + this.team + "'")
+      select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType").expand("Source,Industry,ClassOfInsurance,NBOStage,Author")
       .get().then(docProfileItems => {
-        console.log("SameDept", docProfileItems);
-        this.sortedArray = _.orderBy(docProfileItems, 'ID', ['desc']);
+        for (let sd = 0; sd < this.state.oppurtunityDept.length; sd++) {
+          for (let listItem = 0; listItem < docProfileItems.length; listItem++) {
+            if (docProfileItems[listItem].Department == this.state.oppurtunityDept[sd].text) {
+              tempArray.push(docProfileItems[listItem]);
+            }
+          }
+        }
+        console.log("SameDept", tempArray);
+        this.sortedArray = _.orderBy(tempArray, 'ID', ['desc']);
         this.setState({
           docRepositoryItems: this.sortedArray,
           items: this.sortedArray,
           paginatedItems: this.sortedArray.slice(0, this.pageSize),
-          noItemErrorMsg: docProfileItems.length == 0 ? " " : "none",
+          noItemErrorMsg: tempArray.length == 0 ? " " : "none",
         });
         console.log(this.state.docRepositoryItems);
-        if (docProfileItems.length == 0) {
+        if (tempArray.length == 0) {
           this.setState({ noItemErrorMsg: "" });
         }
+        this.setState({
+          divForSame: "",
+          divForCurrentUser: "none",
+          divForOtherDepts: "none",
+        });
+
       });
-    this.setState({
-      divForSame: "",
-      divForCurrentUser: "none",
-      divForOtherDepts: "none",
-    });
+
+
+
 
   }
   private async others() {
     //alert("others");
+    let docProfileItems = [];
     if (this.state.isNBOAdmin != "true") {
       //not an NBO Admin
+      let tempArray = [];
       await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
-        select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").filter("Author/EMail ne '" + this.currentUserEmail + "' and (Department ne  '" + this.team + "')").get().then(docProfileItems => {
+        select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType")
+        .expand("Source,Industry,ClassOfInsurance,NBOStage,Author")
+        .filter("Author/EMail ne '" + this.currentUserEmail + "' and Department ne '" + this.team + "'").top(4000).getPaged()
+        .then(async docItems => {
+          // for (let sd = 0; sd < this.state.oppurtunityDept.length; sd++) {
+          //   for (let listItem = 0; listItem < docProfileItems.length; listItem++) {
+          //     if (this.state.oppurtunityDept[sd].text != docProfileItems[listItem].Department) {
+          //       tempArray.push(docProfileItems[listItem]);
+          //     }
+          //   }
+          // }
+          docProfileItems = docItems.results;
+          while (docItems.hasNext) {
+            docItems = await docItems.getNext();
+            docProfileItems.push(...(docItems.results));
+
+          }
           this.sortedArray = _.orderBy(docProfileItems, 'ID', ['desc']);
           this.setState({
             docRepositoryItems: this.sortedArray,
             items: this.sortedArray,
             paginatedItems: this.sortedArray.slice(0, this.pageSize),
-            noItemErrorMsg: docProfileItems.length == 0 ? " " : "none"
+            noItemErrorMsg: this.sortedArray.length == 0 ? " " : "none"
           });
           console.log(this.state.docRepositoryItems);
-          if (docProfileItems.length == 0) {
+          console.log("paginatedItems", this.state.paginatedItems);
+          if (this.sortedArray.length == 0) {
             this.setState({ noItemErrorMsg: "" });
           }
+
+          this.setState({
+            divForSame: "none",
+            divForOtherDepts: "",
+            divForCurrentUser: "none"
+          });
         });
-      this.setState({
-        divForSame: "none",
-        divForOtherDepts: "",
-        divForCurrentUser: "none"
-      });
     }
     else {
-      // alert(this.state.isNBOAdmin);
+      //alert(this.state.isNBOAdmin);
       await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
-        select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").get().then(docProfileItems => {
+        select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType")
+        .expand("Source,Industry,ClassOfInsurance,NBOStage,Author").top(4000).getPaged().then(async docItems => {
+          docProfileItems = docItems.results;
+          while (docItems.hasNext) {
+            docItems = await docItems.getNext();
+            docProfileItems.push(...(docItems.results));
+
+          }
           this.sortedArray = _.orderBy(docProfileItems, 'ID', ['desc']);
           this.setState({
             docRepositoryItems: this.sortedArray,
@@ -1417,7 +1590,7 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
         if (NBoIDs.length > 0) {
           for (let h = 0; h < NBoIDs.length; h++) {
             console.log("NBODocumentID", NBoIDs[0].ID);
-            sp.web.getList(this.props.siteUrl + "/NBODocuments/").items.getById(Number(NBoIDs[0].ID)).recycle()
+            sp.web.getList(this.props.siteUrl + "/NBODocuments/").items.getById(Number(NBoIDs[0].ID)).recycle();
           }
         }
       });
@@ -1436,6 +1609,33 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
   private _confirmNoCancel = () => {
     this.setState({
       confirmDialog: true,
+    });
+  }
+  private _onSortClick = (sortBy) => {
+    alert("SortClicked");
+    this.setState({
+      sameDepartmentItems: "no",
+      currentItemID: "",
+
+    });
+    sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
+      select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,WeightedBrokerage,OpportunityType").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").filter("Author/EMail eq '" + this.currentUserEmail + "'").get().then(docProfileItems => {
+        this.sortedArray = _.orderBy(docProfileItems, sortBy, ['asc']);
+        this.setState({
+          docRepositoryItems: this.sortedArray,
+          items: this.sortedArray,
+          paginatedItems: this.sortedArray.slice(0, this.pageSize),
+
+        });
+        console.log(this.state.docRepositoryItems);
+
+      });
+    this.setState({
+      divForSame: "none",
+      divForCurrentUser: "",
+      divForOtherDepts: "none",
+      divForDocumentUploadCompArrayDiv: "none",
+
     });
   }
   private dialogStyles = { main: { maxWidth: 300 } };
@@ -1474,6 +1674,11 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
       { key: 'No', text: 'No' },
       { key: 'Yes', text: 'Yes' },
       { key: 'Pending', text: 'Pending' },
+    ];
+    const OpportunityType: IDropdownOption[] = [
+      { key: 'New', text: 'New' },
+      { key: 'Expanded', text: 'Expanded' },
+
     ];
     const DeleteIcon: IIconProps = { iconName: 'Delete' };
     const ShowDocuments: IIconProps = { iconName: 'DocumentSet' };
@@ -1527,54 +1732,48 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
             <div style={{ display: this.state.docRepositoryItems.length == 0 ? "" : "none", color: "#f4f4f4", textAlign: "center" }}> <h1>No items</h1></div>
             <table style={{ overflowX: "scroll", display: this.state.docRepositoryItems.length == 0 ? "none" : "" }}>
               <tr style={{ background: "#f4f4f4" }}>
-                {/* <th style={{ padding: "5px 10px" }} >Slno</th> */}
-                {/* <th style={{ padding: "5px 10px" }}>Doc Id</th> */}
-                <th style={{ padding: "5px 10px", }}>Action</th>
-                <th style={{ padding: "5px 10px", }}>Delete</th>
-                <th style={{ padding: "5px 10px", }}>View Documents</th>
-                <th style={{ padding: "5px 10px" }}>Client Name</th>
+                <th style={{ padding: "5px 10px", }}>Edit</th>
+                {/* <th style={{ padding: "5px 10px", }}>Delete</th> */}
+                <th style={{ padding: "5px 10px", }}>View Documents </th>
+                <th style={{ padding: "5px 10px" }}>Opportunity Type <IconButton style={{ color: "Black" }} iconProps={FilterIcon} title="sort" ariaLabel="Delete" onClick={() => this._onSortClick('OpportunityType')} /></th>
                 <th style={{ padding: "5px 10px" }}>Source</th>
                 <th style={{ padding: "5px 10px" }}>Industry</th>
-                <th style={{ padding: "5px 10px", }}>Comments</th>
+                <th style={{ padding: "5px 10px" }}>Client Name</th>
                 <th style={{ padding: "5px 10px", }}>Class of Insurance</th>
-                {/* <th style={{ padding: "5px 10px", }}>Currency</th> */}
+                <th style={{ padding: "5px 10px", }}>Est Start Date <IconButton style={{ color: "Black" }} iconProps={FilterIcon} title="sort" ariaLabel="Delete" onClick={() => this._onSortClick('EstimatedStartDate')} /></th>
+                <th style={{ padding: "5px 10px", }}>Comments</th>
                 <th style={{ padding: "5px 10px", }}>Estimated Premium</th>
-                {/* <th style={{ padding: "5px 10px" }}>Brokerage %</th> */}
                 <th style={{ padding: "5px 10px" }}>Brokerage %</th>
                 <th style={{ padding: "5px 10px" }}>Estimated Brokerage</th>
-                <th style={{ padding: "5px 10px", }}>Est Start Date</th>
-                <th style={{ padding: "5px 10px", }}>Fees If Any</th>
-
                 <th style={{ padding: "5px 10px", }}>NBO stage</th>
+                <th style={{ padding: "5px 10px", }}>Weighted brokerage</th>
+                <th style={{ padding: "5px 10px", }}>Fees If Any</th>
                 <th style={{ padding: "5px 10px", }}>Compliance Cleared</th>
 
               </tr>
               {this.state.paginatedItems.map((items, key) => {
                 return (
                   <tr style={{ borderBottom: "1px solid #f4f4f4" }}>
-                    {/* <td style={{ padding: "5px 10px" }}>{key + 1}</td> */}
-                    {/* <td style={{ padding: "5px 10px" }}>{items.documentID} </td> */}
-                    <td style={{ padding: "5px 10px", }}><IconButton iconProps={EditIcon} title="Edit" ariaLabel="Delete" onClick={() => this.onEditClick(items)} disabled={items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? false : true} /></td>
-                    <td style={{ padding: "5px 10px", }}><IconButton iconProps={DeleteIcon} title="Delete" ariaLabel="Delete" onClick={() => this.onDeleteClick(items)} disabled={items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? false : true} /></td>
+                    <td style={{ padding: "5px 10px", }}><IconButton iconProps={EditIcon} title="Edit" ariaLabel="Delete" onClick={() => this.onEditClick(items)} disabled={items.Author.EMail == this.currentUserEmail ? false : true} /></td>
+                    {/* <td style={{ padding: "5px 10px", }}><IconButton iconProps={DeleteIcon} title="Delete" ariaLabel="Delete" onClick={() => this.onDeleteClick(items)} disabled={items.Author.EMail == this.currentUserEmail ? false : true} /></td> */}
                     <td style={{ padding: "5px 10px", }}><IconButton
                       iconProps={ShowDocuments} onClick={() => this.openCCSPopUp(items)}
                       text="View Documents"
-                      disabled={items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? false : true} /></td>
-                    <td style={{ padding: "5px 10px" }}> {items.Title} </td>
+                      disabled={items.Author.EMail == this.currentUserEmail ? false : true} /></td>
+                    <td style={{ padding: "5px 10px" }}> {items.OpportunityType}  </td>
                     <td style={{ padding: "5px 10px" }}> {items.Source.Title}  </td>
                     <td style={{ padding: "5px 10px" }}>{items.Industry.Title}  </td>
-                    <td style={{ padding: "5px 10px" }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? items.Comments : " "} </td>
-                    <td style={{ padding: "5px 10px", }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? items.ClassOfInsurance.Title : " "}  </td>
-                    <td style={{ padding: "5px 10px", }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? items.EstimatedPremium : " "} </td>
-                    <td style={{ padding: "5px 10px" }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? items.BrokeragePercentage + " %" : " "} </td>
-                    <td style={{ padding: "5px 10px" }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? Number(items.EstimatedBrokerage).toFixed(2) : " "} </td>
-                    {/* <td style={{ padding: "5px 10px" }}>{items.BrokerageAmount} </td> */}
-                    <td style={{ padding: "5px 10px" }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? moment(items.EstimatedStartDate).format("DD/MM/YYYY") : " "} </td>
-                    <td style={{ padding: "5px 10px" }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? items.FeesIfAny : " "} </td>
-
-                    <td style={{ padding: "5px 10px" }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? items.NBOStage.Title : " "} </td>
-                    <td style={{ padding: "5px 10px", }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? items.ComplianceCleared : " "} </td>
-
+                    <td style={{ padding: "5px 10px" }}> {items.Title} </td>
+                    <td style={{ padding: "5px 10px", }}>{items.Author.EMail == this.currentUserEmail ? items.ClassOfInsurance.Title : " "}  </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Author.EMail == this.currentUserEmail ? moment(items.EstimatedStartDate).format("DD/MM/YYYY") : " "} </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Author.EMail == this.currentUserEmail ? items.Comments : " "} </td>
+                    <td style={{ padding: "5px 10px", }}>{items.Author.EMail == this.currentUserEmail ? Number(items.EstimatedPremium).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') : " "} </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Author.EMail == this.currentUserEmail ? items.BrokeragePercentage + " %" : " "} </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Author.EMail == this.currentUserEmail ? Number(items.EstimatedBrokerage).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') : " "} </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Author.EMail == this.currentUserEmail ? items.NBOStage.Title : " "} </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Author.EMail == this.currentUserEmail ? Number(items.WeightedBrokerage).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') : " "} </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Author.EMail == this.currentUserEmail ? Number(items.FeesIfAny).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') : " "} </td>
+                    <td style={{ padding: "5px 10px", }}>{items.Author.EMail == this.currentUserEmail ? items.ComplianceCleared : " "} </td>
                   </tr>
                 );
               })}
@@ -1595,20 +1794,23 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
             <div style={{ display: this.state.docRepositoryItems.length == 0 ? "" : "none", color: "#f4f4f4", textAlign: "center" }}> <h1>No items</h1></div>
             <table style={{ display: this.state.docRepositoryItems.length == 0 ? "none" : "", }}>
               <tr style={{ background: "#f4f4f4" }}>
-                <th style={{ padding: "5px 10px", }}>Action</th>
+                <th style={{ padding: "5px 10px", }}>Edit</th>
                 <th style={{ padding: "5px 10px", }}>View Documents</th>
-                <th style={{ padding: "5px 10px" }}>Client Name</th>
+                <th style={{ padding: "5px 10px" }}>Opportunity Type</th>
                 <th style={{ padding: "5px 10px" }}>Source</th>
                 <th style={{ padding: "5px 10px" }}>Industry</th>
-                <th style={{ padding: "5px 10px", }}>Comments</th>
+                <th style={{ padding: "5px 10px" }}>Client Name</th>
                 <th style={{ padding: "5px 10px", }}>Class of Insurance</th>
+                <th style={{ padding: "5px 10px", }}>Est Start Date</th>
+                <th style={{ padding: "5px 10px", }}>Comments</th>
                 <th style={{ padding: "5px 10px", }}>Estimated Premium</th>
                 <th style={{ padding: "5px 10px" }}>Brokerage %</th>
                 <th style={{ padding: "5px 10px" }}>Estimated Brokerage</th>
-                <th style={{ padding: "5px 10px", }}>Est Start Date</th>
+                <th style={{ padding: "5px 10px" }}>NBO Stage</th>
+                <th style={{ padding: "5px 10px", }}>Weighted Brokerage</th>
                 <th style={{ padding: "5px 10px", }}>Fees If Any</th>
-                <th style={{ padding: "5px 10px", }}>NBO stage</th>
                 <th style={{ padding: "5px 10px", }}>Compliance Cleared</th>
+                <th style={{ padding: "5px 10px", }}>Department</th>
                 <th style={{ padding: "5px 10px", }}>Created By</th>
 
               </tr>
@@ -1620,18 +1822,21 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
                       iconProps={ShowDocuments} onClick={() => this.openCCSPopUp(items)}
                       text="View Documents"
                       disabled={items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? false : true} /></td>
-                    <td style={{ padding: "5px 10px" }}> {items.Title} </td>
+                    <td style={{ padding: "5px 10px" }}> {items.OpportunityType}  </td>
                     <td style={{ padding: "5px 10px" }}> {items.Source.Title}  </td>
                     <td style={{ padding: "5px 10px" }}>{items.Industry.Title}  </td>
-                    <td style={{ padding: "5px 10px" }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? items.Comments : " "} </td>
+                    <td style={{ padding: "5px 10px" }}> {items.Title} </td>
                     <td style={{ padding: "5px 10px", }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? items.ClassOfInsurance.Title : " "}  </td>
-                    <td style={{ padding: "5px 10px", }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? items.EstimatedPremium : " "} </td>
-                    <td style={{ padding: "5px 10px" }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? items.BrokeragePercentage + " %" : " "} </td>
-                    <td style={{ padding: "5px 10px" }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? Number(items.EstimatedBrokerage).toFixed(2) : " "} </td>
                     <td style={{ padding: "5px 10px" }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? moment(items.EstimatedStartDate).format("DD/MM/YYYY") : " "} </td>
-                    <td style={{ padding: "5px 10px" }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? items.FeesIfAny : " "} </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? items.Comments : " "} </td>
+                    <td style={{ padding: "5px 10px", }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? Number(items.EstimatedPremium).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') : " "} </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? items.BrokeragePercentage + " %" : " "} </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? Number(items.EstimatedBrokerage).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') : " "} </td>
                     <td style={{ padding: "5px 10px" }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? items.NBOStage.Title : " "} </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? Number(items.WeightedBrokerage).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') : " "} </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? Number(items.FeesIfAny).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') : " "} </td>
                     <td style={{ padding: "5px 10px", }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? items.ComplianceCleared : " "} </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? items.Department : " "} </td>
                     <td style={{ padding: "5px 10px", }}>{items.Department == this.team || items.Author.EMail == this.currentUserEmail || this.teamType == "NBO Admin Team" || this.teamType == "Compliance Team" ? items.Author.Title : " "} </td>
 
                   </tr>
@@ -1650,17 +1855,20 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
           </div>
           {/* divForOtherDepts */}
 
-          <div style={{ display: this.state.divForOtherDepts, marginTop: "10px", overflowX: "auto" }}>
+          {/* <div style={{ display: this.state.divForOtherDepts, marginTop: "10px", overflowX: "auto" }}>
             <div className={styles.Heading}> Other Departments NBO Pipeline</div>
             <div style={{ display: this.state.docRepositoryItems.length == 0 ? "" : "none", color: "#f4f4f4", textAlign: "center" }}> <h1>No items</h1></div>
             <table style={{ overflowX: "scroll", display: this.state.docRepositoryItems.length == 0 ? "none" : "", marginLeft: "auto", marginRight: "auto" }}>
               <tr style={{ background: "#f4f4f4" }}>
-                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Action</th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Edit</th>
                 <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>View Documents</th>
                 <th style={{ padding: "5px 10px" }}>Client Name</th>
                 <th style={{ padding: "5px 10px" }}>Source</th>
                 <th style={{ padding: "5px 10px" }}>Industry</th>
                 <th style={{ padding: "5px 10px" }}>Department</th>
+                <th style={{ padding: "5px 10px", }}>Class of Insurance</th>
+                <th style={{ padding: "5px 10px", }}>Created By</th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Comments</th>
                 <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Class of Insurance</th>
                 <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Estimated Premium</th>
                 <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Brokerage %</th>
@@ -1669,6 +1877,7 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
                 <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Fees If Any</th>
                 <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>NBO stage</th>
                 <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Compliance Cleared</th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Created By</th>
 
               </tr>
               {this.state.paginatedItems.map((items, key) => {
@@ -1684,6 +1893,9 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
                     <td style={{ padding: "5px 10px" }}> {items.Source.Title}  </td>
                     <td style={{ padding: "5px 10px" }}>{items.Industry.Title}  </td>
                     <td style={{ padding: "5px 10px" }}>{items.Department}  </td>
+                    <td style={{ padding: "5px 10px", }}>{items.ClassOfInsurance.Title}  </td>
+                    <td style={{ padding: "5px 10px", }}>{items.Author.Title} </td>
+                    <td style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>{this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? items.Comments : " "}  </td>
                     <td style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>{this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? items.ClassOfInsurance.Title : " "}  </td>
                     <td style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>{this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? items.EstimatedPremium : " "} </td>
                     <td style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>{this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? items.BrokeragePercentage + " %" : " "} </td>
@@ -1692,18 +1904,85 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
                     <td style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>{this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? items.FeesIfAny : " "} </td>
                     <td style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>{this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? items.NBOStage.Title : " "} </td>
                     <td style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>{this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? items.ComplianceCleared : " "} </td>
+                    <td style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>{this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? items.Author.Title : " "} </td>
                   </tr>
                 );
               })}
             </table>
             <div style={{ display: this.state.docRepositoryItems.length >= this.pageSize ? "" : "none" }}>
               <Pagination
-                currentPage={0}
+                currentPage={1}
                 totalPages={(this.sortedArray.length / this.pageSize) - 1}
                 onChange={(page) => this._getPage(page)}
-                limiter={10}
+                limiter={100}
                 limiterIcon={"Emoji12"} // Optional
               />
+            </div>
+          </div> */}
+          <div style={{ display: this.state.divForOtherDepts, marginTop: "10px", overflowX: "auto" }}>
+            <div className={styles.Heading}> Other Departments NBO Pipeline</div>
+            <div style={{ display: this.state.docRepositoryItems.length == 0 ? "" : "none", color: "#f4f4f4", textAlign: "center" }}> <h1>No items</h1></div>
+            <table style={{ overflowX: "scroll", display: this.state.docRepositoryItems.length == 0 ? "none" : "", marginLeft: "auto", marginRight: "auto" }}>
+              <tr style={{ background: "#f4f4f4" }}>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Edit</th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" ? " " : "none") }}>Delete</th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>View Documents</th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Opportunity Type</th>
+                <th style={{ padding: "5px 10px" }}>Source</th>
+                <th style={{ padding: "5px 10px" }}>Industry</th>
+                <th style={{ padding: "5px 10px" }}>Client Name</th>
+                <th style={{ padding: "5px 10px", }}>Class of Insurance</th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Est Start Date</th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Comments</th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Estimated Premium</th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Brokerage %</th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Estimated Brokerage</th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>NBO stage</th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Weighted Brokerage</th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Fees If Any</th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Compliance Cleared</th>
+                <th style={{ padding: "5px 10px" }}>Department</th>
+                <th style={{ padding: "5px 10px", }}>Created By</th>
+              </tr>
+              {this.state.paginatedItems.map((items, key) => {
+                return (
+                  <tr style={{ borderBottom: "1px solid #f4f4f4" }}>
+                    <td style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}><IconButton iconProps={EditIcon} title="Edit" ariaLabel="Delete" onClick={() => this.onEditClick(items)}
+                      disabled={this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? false : true} /></td>
+                    <td style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" ? " " : "none") }}><IconButton iconProps={DeleteIcon} title="Delete" ariaLabel="Delete" onClick={() => this.onDeleteClick(items)} /></td>
+                    <td style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}><IconButton
+                      iconProps={ShowDocuments} onClick={() => this.openCCSPopUp(items)}
+                      text="View Documents"
+                      disabled={this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? false : true} /></td>
+                    <td style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>{this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? items.OpportunityType : " "} </td>
+                    <td style={{ padding: "5px 10px" }}> {items.Source.Title}  </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Industry.Title}  </td>
+                    <td style={{ padding: "5px 10px" }}> {items.Title} </td>
+                    <td style={{ padding: "5px 10px", }}>{items.ClassOfInsurance.Title}  </td>
+                    <td style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>{this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? moment(items.EstimatedStartDate).format("DD/MM/YYYY") : " "} </td>
+                    <td style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>{this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? items.Comments : " "}  </td>
+                    <td style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>{this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? Number(items.EstimatedPremium).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') : " "} </td>
+                    <td style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>{this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? items.BrokeragePercentage + " %" : " "} </td>
+                    <td style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>{this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? Number(items.EstimatedBrokerage).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') : " "} </td>
+                    <td style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>{this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? items.NBOStage.Title : " "} </td>
+                    <td style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>{this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? Number(items.WeightedBrokerage).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') : " "} </td>
+                    <td style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>{this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? Number(items.FeesIfAny).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') : " "} </td>
+                    <td style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>{this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? items.ComplianceCleared : " "} </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Department}  </td>
+                    <td style={{ padding: "5px 10px", }}>{items.Author.Title} </td>
+                  </tr>
+                );
+              })}
+            </table>
+            <div style={{ display: this.state.docRepositoryItems.length >= this.pageSize ? "" : "none" }}>
+              <Pagination
+                currentPage={1}
+                totalPages={(this.sortedArray.length / this.pageSize) - 1}
+                onChange={(page) => this._getPage(page)}
+                limiter={100}
+                limiterIcon={"Emoji12"} // Optional
+              />
+
             </div>
           </div>
         </div><div style={{ display: this.state.AddNBO }} className={styles.nboAddDiv}>
@@ -1713,8 +1992,8 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
               containerClassName={contentStyles.container}>
               {/* header */}
               <div style={{ display: "flex", backgroundColor: "#008f85", }}>
-                <h1 style={{ marginLeft: "35%", color: "white" }}>NB Oppurtunity Form</h1>
-                <div style={{ marginLeft: "35%" }}>
+                <h1 style={{ marginLeft: "410px", color: "white" }}>New Business Opportunity Form</h1>
+                <div style={{ marginLeft: "25%" }}>
                   <IconButton
                     iconProps={CancelIcon}
                     ariaLabel="Close popup modal"
@@ -1724,8 +2003,22 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
               </div>
               {/* body */}
               <div style={{ padding: "17px 7px 11px 25px", border: "1px solid #25ddd0" }}>
-                <div style={{ marginLeft: "10px", marginRight: "10px" }}> <TextField autoComplete="off" label="Prospect Legal Name " required={true} value={this.state.clientName} onChange={this.clientNameChange}></TextField></div>
-                <div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px" }}>{this.validator.message("subContractor", this.state.clientName, "required")}{" "}</div>
+                <div style={{ marginLeft: "10px", marginRight: "10px", display: "flex" }}>
+                  <div style={{ marginRight: "16px", width: "80%" }}>
+                    <TextField autoComplete="off" label="Prospect Legal Name " required={true} value={this.state.clientName} onChange={this.clientNameChange} ></TextField>
+                    <div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px" }}>{this.validator.message("subContractor", this.state.clientName, "required")}{" "}</div>
+                  </div>
+                  <div><Dropdown id="Opportunity Type"
+                    required={true}
+                    selectedKey={this.state.oppurtunityTypeKey}
+                    placeholder="Select Opportunity Type"
+                    options={OpportunityType}
+                    onChanged={this._drpdwnOppurtunityType}
+                    label="Opportunity Type"
+                    style={{ width: "105%" }} />
+                    <div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px" }}>{this.validator.message("oppurtunityType", this.state.oppurtunityType, "required")}{" "}</div></div>
+                </div>
+
                 <div style={{ marginLeft: "10px", marginRight: "10px", display: "flex", marginTop: "27px", marginBottom: "24px" }}>
                   <div>
                     <Dropdown id="t3"
@@ -1960,16 +2253,17 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
             </Panel>
           </div></>
         <div style={{ display: this.state.displayFromMail }}>
-          <div style={{ display: this.state.divForSame, marginTop: "10px" }}>
+          <div style={{ display: this.state.divForSame, marginTop: "10px", overflowX: "auto" }}>
             <table style={{ overflowX: "scroll", display: this.state.docRepositoryItems.length == 0 ? "none" : "" }}>
               <tr style={{ background: "#f4f4f4" }}>
                 {/* <th style={{ padding: "5px 10px" }} >Slno</th> */}
                 {/* <th style={{ padding: "5px 10px" }}>Doc Id</th> */}
-                <th style={{ padding: "5px 10px", }}>Action</th>
+                <th style={{ padding: "5px 10px", }}>Edit</th>
                 <th style={{ padding: "5px 10px", }}>View Documents</th>
                 <th style={{ padding: "5px 10px" }}>Client Name</th>
                 <th style={{ padding: "5px 10px" }}>Source</th>
                 <th style={{ padding: "5px 10px" }}>Industry</th>
+                <th style={{ padding: "5px 10px" }}>Department</th>
                 <th style={{ padding: "5px 10px", }}>Comments</th>
                 <th style={{ padding: "5px 10px", }}>Class of Insurance</th>
                 {/* <th style={{ padding: "5px 10px", }}>Currency</th> */}
@@ -1997,6 +2291,7 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
                     <td style={{ padding: "5px 10px" }}> {items.Title} </td>
                     <td style={{ padding: "5px 10px" }}> {items.Source.Title}  </td>
                     <td style={{ padding: "5px 10px" }}>{items.Industry.Title}  </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Department} </td>
                     <td style={{ padding: "5px 10px" }}>{items.Comments} </td>
                     <td style={{ padding: "5px 10px", }}>{items.ClassOfInsurance.Title}  </td>
                     <td style={{ padding: "5px 10px", }}>{items.EstimatedPremium} </td>
