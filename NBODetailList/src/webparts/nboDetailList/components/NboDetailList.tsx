@@ -1,7 +1,7 @@
 import * as React from 'react';
 import styles from './NboDetailList.module.scss';
 import { INboDetailListProps } from './INboDetailListProps';
-import { DetailsList, Fabric, Selection, IColumn, DetailsListLayoutMode, Link, IconButton, IIconProps, TextField, Dropdown, IDropdownOption, DatePicker, PrimaryButton, DefaultButton, Dialog, DialogFooter, DialogType, Modal, Panel, Label, FontWeights, mergeStyleSets, getTheme, CommandBarButton, PanelType, Callout, IContextualMenuProps, CommandButton, MessageBar } from 'office-ui-fabric-react';
+import { DetailsList, Fabric, Selection, IColumn, DetailsListLayoutMode, Link, IconButton, IIconProps, TextField, Dropdown, IDropdownOption, DatePicker, PrimaryButton, DefaultButton, Dialog, DialogFooter, DialogType, Modal, Panel, Label, FontWeights, mergeStyleSets, getTheme, CommandBarButton, PanelType, Callout, IContextualMenuProps, CommandButton, MessageBar, SearchBox } from 'office-ui-fabric-react';
 import { sp, Web, IAttachmentFileInfo, Items } from "@pnp/sp/presets/all";
 import { forEach, isNumber } from 'lodash';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
@@ -88,7 +88,58 @@ export interface INboDetailListState {
   isNBOAdmin: string;
   oppurtunityTypeKey: string;
   oppurtunityType: string;
-  sortType: string;
+  sortTypeAsc: string;
+  sortTypeDesc: string;
+  sortOppurtunityTypeAsc: string;
+  sortOppurtunityTypeDesc: string;
+  SourceTypeAsc: string;
+  IndustryTypeAsc: string;
+  ClientNameTypeAsc: string;
+  ClassOfInsuranceTypeAsc: string;
+  EstStartDateTypeAsc: string;
+  CommentsTypeAsc: string;
+  EstimatedPremiumTypeAsc: string;
+  BrokerageTypeAsc: string;
+  EstimatedBrokerageTypeAsc: string;
+  NBOStageTypeAsc: string;
+  WeightedBrokerageTypeAsc: string;
+  FeesIfAnyTypeAsc: string;
+  ComplianceClearedTypeAsc: string;
+  DepartmentTypeAsc: string;
+  CreatedByTypeAsc: string;
+  SourceTypeDesc: string;
+  IndustryTypeDesc: string;
+  ClientNameTypeDesc: string;
+  ClassOfInsuranceTypeDesc: string;
+  EstStartDateTypeDesc: string;
+  CommentsTypeDesc: string;
+  EstimatedPremiumTypeDesc: string;
+  BrokerageTypeDesc: string;
+  EstimatedBrokerageTypeDesc: string;
+  NBOStageTypeDesc: string;
+  WeightedBrokerageTypeDesc: string;
+  FeesIfAnyTypeDesc: string;
+  ComplianceClearedTypeDesc: string;
+  DepartmentTypeDesc: string;
+  CreatedByTypeDesc: string;
+  hideFilterDialog: boolean;
+  currentFilterItem: string;
+  filterItems: any[];
+  currentPage: number;
+  arrayForShowingPagination: any[];
+  forOtherDeptFilter: string;
+  selectedColumnKey: any;
+  filterConditions: any[];
+  textFiledForFilter: string;
+  filterCondition: string;
+  filterConditionKey: string;
+  filterValue: any;
+  dateForFilter: string;
+  filterConditionDiv: string;
+  divForShowingPagination: string;
+  divForNoDataFound: string;
+  estimatedFromStartDate: Date;
+  estimatedToStartDate: Date;
 }
 export interface IDocument {
   Title: string;
@@ -98,7 +149,9 @@ export interface IDocument {
 }
 
 const EditIcon: IIconProps = { iconName: 'Edit' };
-const FilterIcon: IIconProps = { iconName: 'Sort' };
+const SortAcsIcon: IIconProps = { iconName: 'SortLinesAscending' };
+const SortDescIcon: IIconProps = { iconName: 'SortLines' };
+const FilterIcon: IIconProps = { iconName: 'Filter' };
 const DeleteIcon: IIconProps = { iconName: 'Delete' };
 const AddIcon: IIconProps = { iconName: 'Add' };
 const CancelIcon: IIconProps = { iconName: 'Cancel' };
@@ -141,7 +194,7 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
   private compliance;
   private sortedArray = [];
   private pageSize: number = 30;
-
+  private forDeptCreatedBy;
   //private teamTypeArray: any[];
   private reqWeb = Web(window.location.protocol + "//" + window.location.hostname + "/sites/Acclaim");
   constructor(props: INboDetailListProps) {
@@ -218,7 +271,58 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
       departmentkey: "",
       oppurtunityTypeKey: "",
       oppurtunityType: "",
-      sortType: "",
+      sortTypeAsc: "",
+      sortTypeDesc: "none",
+      sortOppurtunityTypeAsc: "",
+      sortOppurtunityTypeDesc: "none",
+      SourceTypeAsc: "",
+      IndustryTypeAsc: "",
+      ClientNameTypeAsc: "",
+      ClassOfInsuranceTypeAsc: "",
+      EstStartDateTypeAsc: "",
+      CommentsTypeAsc: "",
+      EstimatedPremiumTypeAsc: "",
+      BrokerageTypeAsc: "",
+      EstimatedBrokerageTypeAsc: "",
+      NBOStageTypeAsc: "",
+      WeightedBrokerageTypeAsc: "",
+      FeesIfAnyTypeAsc: "",
+      ComplianceClearedTypeAsc: "",
+      DepartmentTypeAsc: "",
+      CreatedByTypeAsc: "",
+      SourceTypeDesc: "none",
+      IndustryTypeDesc: "none",
+      ClientNameTypeDesc: "none",
+      ClassOfInsuranceTypeDesc: "none",
+      EstStartDateTypeDesc: "none",
+      CommentsTypeDesc: "none",
+      EstimatedPremiumTypeDesc: "none",
+      BrokerageTypeDesc: "none",
+      EstimatedBrokerageTypeDesc: "none",
+      NBOStageTypeDesc: "none",
+      WeightedBrokerageTypeDesc: "none",
+      FeesIfAnyTypeDesc: "none",
+      ComplianceClearedTypeDesc: "none",
+      DepartmentTypeDesc: "none",
+      CreatedByTypeDesc: "none",
+      hideFilterDialog: false,
+      currentFilterItem: "",
+      filterItems: [],
+      currentPage: 1,
+      arrayForShowingPagination: [],
+      forOtherDeptFilter: "",
+      selectedColumnKey: "",
+      filterConditions: [],
+      textFiledForFilter: "none",
+      filterCondition: "",
+      filterConditionKey: "",
+      filterValue: "",
+      dateForFilter: "none",
+      filterConditionDiv: "",
+      divForShowingPagination: "none",
+      divForNoDataFound: "none",
+      estimatedFromStartDate: null,
+      estimatedToStartDate: null,
     };
 
     this._drpdwnChangeSource = this._drpdwnChangeSource.bind(this);
@@ -256,6 +360,21 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
     this._showExternalGridForComplianceUpload = this._showExternalGridForComplianceUpload.bind(this);
     this._selectDepartmentFromSameDepartmentTab = this._selectDepartmentFromSameDepartmentTab.bind(this);
     this._drpdwnOppurtunityType = this._drpdwnOppurtunityType.bind(this);
+    this._onSortClickAscForMyNBO = this._onSortClickAscForMyNBO.bind(this);
+    this._onSortClickDescForMyNBO = this._onSortClickDescForMyNBO.bind(this);
+    this._onSortClickAscForSameDept = this._onSortClickAscForSameDept.bind(this);
+    this._onSortClickDescForSameDept = this._onSortClickDescForSameDept.bind(this);
+    this._onSortClickAscForOtherDept = this._onSortClickAscForOtherDept.bind(this);
+    this._onSortClickDescForOtherDept = this._onSortClickDescForOtherDept.bind(this);
+    this._filterPanelCloseButton = this._filterPanelCloseButton.bind(this);
+    this._onFilter = this._onFilter.bind(this);
+    this.filterColumnChange = this.filterColumnChange.bind(this);
+    this.filterConditionColumnChange = this.filterConditionColumnChange.bind(this);
+    this._onFilterButtonSubmit = this._onFilterButtonSubmit.bind(this);
+    this.filterValueChange = this.filterValueChange.bind(this);
+    this._onFilterForModal = this._onFilterForModal.bind(this);
+    this._estimateFromDateChange = this._estimateFromDateChange.bind(this);
+    this._estimateToDateChange = this._estimateToDateChange.bind(this);
   }
   public componentWillMount = async () => {
     this.validator = new SimpleReactValidator({
@@ -452,19 +571,57 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
   //getting items from NBOPipeline List
   private loadDocProfile = () => {
     //alert(this.team)
+    this.forDeptCreatedBy = "";
+    let docProfileItems = [];
     this.setState({
       sameDepartmentItems: "no",
       currentItemID: "",
-
+      forOtherDeptFilter: "MYNBOSame",
+      filterCondition: "",
+      filterValue: "",
+      selectedColumnKey: "",
+      filterConditions: [],
+      divForNoDataFound: "none"
     });
     sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
-      select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,WeightedBrokerage,OpportunityType").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").filter("Author/EMail eq '" + this.currentUserEmail + "'").get().then(docProfileItems => {
+      select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,WeightedBrokerage,OpportunityType").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").filter("Author/EMail eq '" + this.currentUserEmail + "'")
+      .top(4000).getPaged()
+      .then(async docItems => {
+        this.setState({ arrayForShowingPagination: docItems.results });
+        for (let i = 0; i < this.pageSize; i++) {
+          docProfileItems.push({
+            "ID": null,
+            "Title": null,
+            "BrokeragePercentage": null,
+            "Source": { "ID": null, "Title": null },
+            "Industry": { "ID": null, "Title": null },
+            "ClassOfInsurance": { "ID": null, "Title": null },
+            "NBOStage": { "ID": null, "Title": null },
+            "EstimatedBrokerage": null,
+            "FeesIfAny": null,
+            "Comments": null,
+            "EstimatedStartDate": null,
+            "EstimatedPremium": null,
+            "Department": null,
+            "ComplianceCleared": null,
+            "Author": { "EMail": null, "Title": null },
+            "WeightedBrokerage": null,
+            "OpportunityType": null,
+          });
+        }
+        docProfileItems = docProfileItems.concat(docItems.results);
+        console.log(docProfileItems);
+        while (docItems.hasNext) {
+          docItems = await docItems.getNext();
+          docProfileItems.push(...(docItems.results));
+        }
+
         this.sortedArray = _.orderBy(docProfileItems, 'ID', ['desc']);
         this.setState({
           docRepositoryItems: this.sortedArray,
           items: this.sortedArray,
-          paginatedItems: this.sortedArray.slice(0, this.pageSize),
-
+          paginatedItems: this.sortedArray.slice(this.pageSize, this.pageSize + this.pageSize),
+          divForShowingPagination: "",
         });
         console.log(this.state.docRepositoryItems);
 
@@ -474,10 +631,9 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
       divForCurrentUser: "",
       divForOtherDepts: "none",
       divForDocumentUploadCompArrayDiv: "none",
-
     });
-
   }
+
   // sending Email for managers
   private async _sendAnEmailUsingMSGraph(nbolid): Promise<void> {
     let email = [];
@@ -603,8 +759,6 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
     // }
   }
   // ---------------ItemInvoked---------------------
-
-
   private async onEditClick(item) {
     //alert(item.ID);
     console.log("edit Item", item.ID);
@@ -834,6 +988,7 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
   private _dialogCloseButton = () => {
     this.setState({
       hideDialog: false,
+      hideFilterDialog: false,
       showReviewModal: false,
       sourceKey: "",
       industryKey: "",
@@ -849,9 +1004,38 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
       tempArrayForExternalDocumentGrid: [],
       confirmDialog: true,
       oppurtunityTypeKey: "",
-      oppurtunityType: ""
+      oppurtunityType: "",
+      feesIfAny: "0",
+
     });
 
+  }
+
+  //For filter panel  box of cancel
+  private _filterPanelCloseButton = () => {
+    if (this.state.sameDepartmentItems == "no") {
+      this.loadDocProfile();
+    }
+    else if (this.state.sameDepartmentItems == "Yes") {
+      this.sameDept();
+    }
+    else if (this.state.forOtherDeptFilter == "Other") {
+      this.others();
+    }
+    this.setState({
+      hideFilterDialog: false,
+      selectedColumnKey: "",
+      filterCondition: "",
+      estimatedStartDate: "",
+      filterValue: "",
+      filterConditionKey: "",
+      dateForFilter: "none",
+      textFiledForFilter: "none",
+      filterConditionDiv: "",
+      divForNoDataFound: "none",
+      estimatedFromStartDate: null,
+      estimatedToStartDate: null,
+    });
   }
   // ---------------SubmitToNBOPipeline---------------------
   private _submitNBOPipeline = async () => {
@@ -914,8 +1098,8 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
               });
             }
           }
-          this._sendAnEmailUsingMSGraph(afterInsertion.data.ID);
-          this._sendAnEmailForComplianceGroup(afterInsertion.data.ID);
+          this._sendAnEmailUsingMSGraph(afterInsertion.data.ID);//mail for manager
+          this._sendAnEmailForComplianceGroup(afterInsertion.data.ID);// mail for compliance group
           this.loadDocProfile();
         }).then(afterDocumentInsertion => {
           this.loadDocProfile();
@@ -981,7 +1165,6 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
                   NBOPipelineIdId: afterInsertion.data.ID,
                   Title: this.state.externalArray[i].documentName,
                 });
-
 
               });
             }
@@ -1149,6 +1332,14 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
   private _estimateDateChange = (date?: Date): void => {
     this.setState({ estimatedStartDate: date, });
   }
+  // ---------------Estimated From DatePickerChange---------------------
+  private _estimateFromDateChange = (date?: Date): void => {
+    this.setState({ estimatedFromStartDate: date, estimatedToStartDate: null });
+  }
+  // ---------------Estimated To DatePickerChange---------------------
+  private _estimateToDateChange = (date?: Date): void => {
+    this.setState({ estimatedToStartDate: date, });
+  }
   // ---------------GroupName---------------------
   public _drpdwnGroupName(option: { key: any; text: any }) {
     this.setState({
@@ -1161,6 +1352,91 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
     this.setState({
       oppurtunityTypeKey: option.key,
       oppurtunityType: option.text,
+    });
+  }
+  // ---------------oppurtunityType---------------------
+  public async filterColumnChange(option: { key: any; text: any }) {
+    this.setState({
+      selectedColumnKey: option.key,
+    });
+    let oppTypeConditions = ["New", "Expanded"];
+    let numberTypeConditions = ["<", ">", "=", "!=", "<=", ">="];
+    let stringTypeConditions = ["equals", "not equal to", "Contains"];
+    let complianceClearedConditions = ["Yes", "No", "Pending"];
+    let tempConditionArray = [];
+    if (option.key == "OpportunityType") {
+      for (let i = 0; i < oppTypeConditions.length; i++) {
+        // if(subcontractor[i].Active == true){
+        let Itemdata = {
+          key: oppTypeConditions[i],
+          text: oppTypeConditions[i]
+        };
+        tempConditionArray.push(Itemdata);
+      }
+      this.setState({ dateForFilter: "none", filterConditionDiv: "", filterConditions: tempConditionArray, textFiledForFilter: "none" });
+    }
+    else if (option.key == "EstimatedBrokerage" || option.key == "FeesIfAny" || option.key == "EstimatedPremium" || option.key == "WeightedBrokerage" || option.key == "BrokeragePercentage") {
+      for (let i = 0; i < numberTypeConditions.length; i++) {
+        // if(subcontractor[i].Active == true){
+        let Itemdata = {
+          key: numberTypeConditions[i],
+          text: numberTypeConditions[i]
+        };
+        tempConditionArray.push(Itemdata);
+      }
+      this.setState({ dateForFilter: "none", filterConditionDiv: "", filterConditions: tempConditionArray, textFiledForFilter: "" });
+    }
+    else if (option.key == "Title" || option.key == "Comments" || option.key == "Department" || option.key == "Author") {
+      for (let i = 0; i < stringTypeConditions.length; i++) {
+        // if(subcontractor[i].Active == true){
+        let Itemdata = {
+          key: stringTypeConditions[i],
+          text: stringTypeConditions[i]
+        };
+        tempConditionArray.push(Itemdata);
+      }
+      this.setState({ dateForFilter: "none", filterConditionDiv: "", filterConditions: tempConditionArray, textFiledForFilter: "" });
+    }
+    else if (option.key == "ComplianceCleared") {
+      for (let i = 0; i < complianceClearedConditions.length; i++) {
+        // if(subcontractor[i].Active == true){
+        let Itemdata = {
+          key: complianceClearedConditions[i],
+          text: complianceClearedConditions[i]
+        };
+        tempConditionArray.push(Itemdata);
+      }
+      this.setState({ dateForFilter: "none", filterConditionDiv: "", filterConditions: tempConditionArray, textFiledForFilter: "none" });
+    }
+    else if (option.key == "Industry") {
+      await this._drpdwnIndustryBind();
+      this.setState({ dateForFilter: "none", filterConditionDiv: "", filterConditions: this.state.industryItems, textFiledForFilter: "none" });
+
+    }
+    else if (option.key == "ClassOfInsurance") {
+      await this._drpdwnClassOfInsuranceBind();
+      this.setState({ dateForFilter: "none", filterConditionDiv: "", filterConditions: this.state.classOfInsuranceItems, textFiledForFilter: "none" });
+    }
+    else if (option.key == "Source") {
+      await this._drpdwnSource();
+      this.setState({ dateForFilter: "none", filterConditionDiv: "", filterConditions: this.state.sourceItems, textFiledForFilter: "none" });
+    }
+    else if (option.key == "NBOStage") {
+      await this._drpdwnNBOStageBind();
+      this.setState({ dateForFilter: "none", filterConditionDiv: "", filterConditions: this.state.NBOStageItems, textFiledForFilter: "none" });
+    }
+    else if (option.key == "EstimatedStartDate") {
+      this.setState({
+        dateForFilter: "",
+        filterConditionDiv: "none",
+        textFiledForFilter: "none",
+      });
+    }
+  }
+  public async filterConditionColumnChange(option: { key: any; text: any }) {
+    this.setState({
+      filterCondition: option.text,
+      filterConditionKey: option.key,
     });
   }
   public async _selectDepartmentFromSameDepartmentTab(option: { key: any; text: any }) {
@@ -1215,6 +1491,10 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
       industryKey: option.key,
     });
   }
+  // ---------------filter name change---------------------
+  private filterValueChange = (ev: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newText: string): void => {
+    this.setState({ filterValue: newText || '' });
+  }
   // ---------------ClientName---------------------
   private clientNameChange = (ev: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, newText: string): void => {
     this.setState({ clientName: newText || '' });
@@ -1248,30 +1528,15 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
       estimatedBrokerage: "",
       brokerageAmount: "",
       estimatedStartDate: "",
-      feesIfAny: "",
+      feesIfAny: "0",
       comments: "",
       divForDocumentUploadCompliance: "none",
+      oppurtunityType: "",
+      oppurtunityTypeKey: "",
+
     });
   }
-  private _closeModalFromMailView = (): void => {
-    this.setState({
-      showReviewModal: false,
-      clientName: "",
-      source: "",
-      NB0StageText: "",
-      complianceCleared: "",
-      industry: "",
-      classOfInsurance: "",
-      estimatedPremium: "",
-      brokerage: "",
-      estimatedBrokerage: "",
-      brokerageAmount: "",
-      estimatedStartDate: "",
-      feesIfAny: "",
-      comments: "",
-    });
-    //window.location.replace("https://acclaiminsurance.sharepoint.com/sites/Intranet/_layouts/15/workbench.aspx")
-  }
+
   // ---------------NBOStage---------------------
   public _drpdwnNBOStage(option: { key: any; text: any }) {
     //console.log(option.key)      
@@ -1318,10 +1583,12 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
     let myfile = (document.querySelector("#newfile") as HTMLInputElement).files[0];
     var splitted = myfile.name.split(".");
   }
+  //pagination onChange
   private _getPage(page: number) {
     // round a number up to the next largest integer.
     const roundupPage = Math.ceil(page);// Math.ceil(page);
     this.setState({
+      currentPage: page,
       paginatedItems: this.sortedArray.slice(roundupPage * this.pageSize, (roundupPage * this.pageSize) + this.pageSize)
     });
   }
@@ -1441,36 +1708,121 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
       });
     });
   }
-  public notify() {
-    //toast("Wow so easy!");
-  }
+
+  //grid binding for same departments
   private async sameDept() {
     //alert("same dept");
     //  alert(this.team);
+    let docProfileItems = [];
+    this.forDeptCreatedBy = "ok";
     console.log("departments of current user", this.state.oppurtunityDept);
     this.setState({
       sameDepartmentItems: "Yes",
       currentItemID: "",
+      forOtherDeptFilter: "MYNBOSame",
+      filterCondition: "",
+      filterValue: "",
+      selectedColumnKey: "",
+      filterConditions: [],
+      divForNoDataFound: "none"
     });
 
     let tempArray = [];
+    // await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
+    //   //select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").filter("Author/EMail ne '" + this.currentUserEmail + "' and (Department eq  '" + this.team + "')")
+    //   select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType").expand("Source,Industry,ClassOfInsurance,NBOStage,Author")
+    //   .get().then(docItems => {
+    //     for (let sd = 0; sd < this.state.oppurtunityDept.length; sd++) {
+    //       for (let listItem = 0; listItem < docItems.length; listItem++) {
+    //         if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text) {
+    //           tempArray.push(docItems[listItem]);
+    //         }
+    //       }
+    //     }
+    //     for (let i = 0; i < this.pageSize; i++) {
+    //       docProfileItems.push({
+    //         "ID": null,
+    //         "Title": null,
+    //         "BrokeragePercentage": null,
+    //         "Source": { "ID": null, "Title": null },
+    //         "Industry": { "ID": null, "Title": null },
+    //         "ClassOfInsurance": { "ID": null, "Title": null },
+    //         "NBOStage": { "ID": null, "Title": null },
+    //         "EstimatedBrokerage": null,
+    //         "FeesIfAny": null,
+    //         "Comments": null,
+    //         "EstimatedStartDate": null,
+    //         "EstimatedPremium": null,
+    //         "Department": null,
+    //         "ComplianceCleared": null,
+    //         "Author": { "EMail": null, "Title": null },
+    //         "WeightedBrokerage": null,
+    //         "OpportunityType": null,
+    //       });
+    //     }
+    //     console.log("SameDept", tempArray);
+    //     docProfileItems = docProfileItems.concat(tempArray);
+    //     this.sortedArray = _.orderBy(docProfileItems, 'ID', ['desc']);
+    //     this.setState({
+    //       arrayForShowingPagination: tempArray,
+    //       docRepositoryItems: this.sortedArray,
+    //       items: this.sortedArray,
+    //       paginatedItems: this.sortedArray.slice(this.pageSize, this.pageSize + this.pageSize),
+    //       noItemErrorMsg: tempArray.length == 0 ? " " : "none",
+    //     });
+    //     console.log(this.state.docRepositoryItems);
+    //     if (tempArray.length == 0) {
+    //       this.setState({ noItemErrorMsg: "" });
+    //     }
+    //     this.setState({
+    //       divForSame: "",
+    //       divForCurrentUser: "none",
+    //       divForOtherDepts: "none",
+    //       divForShowingPagination: "",
+    //     });
+
+    //   });
     await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
       //select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").filter("Author/EMail ne '" + this.currentUserEmail + "' and (Department eq  '" + this.team + "')")
-      select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType").expand("Source,Industry,ClassOfInsurance,NBOStage,Author")
-      .get().then(docProfileItems => {
+      select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType")
+      .expand("Source,Industry,ClassOfInsurance,NBOStage,Author").orderBy("ID", false)
+      .get().then(docItems => {
         for (let sd = 0; sd < this.state.oppurtunityDept.length; sd++) {
-          for (let listItem = 0; listItem < docProfileItems.length; listItem++) {
-            if (docProfileItems[listItem].Department == this.state.oppurtunityDept[sd].text) {
-              tempArray.push(docProfileItems[listItem]);
+          for (let listItem = 0; listItem < docItems.length; listItem++) {
+            if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text) {
+              tempArray.push(docItems[listItem]);
             }
           }
         }
+        for (let i = 0; i < this.pageSize; i++) {
+          docProfileItems.push({
+            "ID": null,
+            "Title": null,
+            "BrokeragePercentage": null,
+            "Source": { "ID": null, "Title": null },
+            "Industry": { "ID": null, "Title": null },
+            "ClassOfInsurance": { "ID": null, "Title": null },
+            "NBOStage": { "ID": null, "Title": null },
+            "EstimatedBrokerage": null,
+            "FeesIfAny": null,
+            "Comments": null,
+            "EstimatedStartDate": null,
+            "EstimatedPremium": null,
+            "Department": null,
+            "ComplianceCleared": null,
+            "Author": { "EMail": null, "Title": null },
+            "WeightedBrokerage": null,
+            "OpportunityType": null,
+          });
+        }
         console.log("SameDept", tempArray);
-        this.sortedArray = _.orderBy(tempArray, 'ID', ['desc']);
+        docProfileItems = docProfileItems.concat(tempArray);
+        this.sortedArray = docProfileItems;
         this.setState({
+          arrayForShowingPagination: tempArray,
           docRepositoryItems: this.sortedArray,
           items: this.sortedArray,
-          paginatedItems: this.sortedArray.slice(0, this.pageSize),
+          paginatedItems: this.sortedArray.slice(this.pageSize, this.pageSize + this.pageSize),
           noItemErrorMsg: tempArray.length == 0 ? " " : "none",
         });
         console.log(this.state.docRepositoryItems);
@@ -1489,7 +1841,18 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
 
 
   }
+  //grid binding for other departments tab and for NBO admin
   private async others() {
+    this.setState({
+      forOtherDeptFilter: "Other",
+      filterConditions: [],
+      sameDepartmentItems: "not",
+      filterCondition: "",
+      filterValue: "",
+      selectedColumnKey: "",
+      divForNoDataFound: "none"
+    });
+    this.forDeptCreatedBy = "ok";
     //alert("others");
     let docProfileItems = [];
     if (this.state.isNBOAdmin != "true") {
@@ -1498,7 +1861,8 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
       await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
         select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType")
         .expand("Source,Industry,ClassOfInsurance,NBOStage,Author")
-        .filter("Author/EMail ne '" + this.currentUserEmail + "' and Department ne '" + this.team + "'").top(4000).getPaged()
+        .filter("Author/EMail ne '" + this.currentUserEmail + "' and Department ne '" + this.team + "'")
+        .top(4000).getPaged()
         .then(async docItems => {
           // for (let sd = 0; sd < this.state.oppurtunityDept.length; sd++) {
           //   for (let listItem = 0; listItem < docProfileItems.length; listItem++) {
@@ -1507,7 +1871,29 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
           //     }
           //   }
           // }
-          docProfileItems = docItems.results;
+          for (let i = 0; i < this.pageSize; i++) {
+            docProfileItems.push({
+              "ID": null,
+              "Title": null,
+              "BrokeragePercentage": null,
+              "Source": { "ID": null, "Title": null },
+              "Industry": { "ID": null, "Title": null },
+              "ClassOfInsurance": { "ID": null, "Title": null },
+              "NBOStage": { "ID": null, "Title": null },
+              "EstimatedBrokerage": null,
+              "FeesIfAny": null,
+              "Comments": null,
+              "EstimatedStartDate": null,
+              "EstimatedPremium": null,
+              "Department": null,
+              "ComplianceCleared": null,
+              "Author": { "EMail": null, "Title": null },
+              "WeightedBrokerage": null,
+              "OpportunityType": null,
+            });
+          }
+          docProfileItems = docProfileItems.concat(docItems.results);
+          console.log(docProfileItems);
           while (docItems.hasNext) {
             docItems = await docItems.getNext();
             docProfileItems.push(...(docItems.results));
@@ -1515,9 +1901,10 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
           }
           this.sortedArray = _.orderBy(docProfileItems, 'ID', ['desc']);
           this.setState({
+            arrayForShowingPagination: docItems.results,
             docRepositoryItems: this.sortedArray,
             items: this.sortedArray,
-            paginatedItems: this.sortedArray.slice(0, this.pageSize),
+            paginatedItems: this.sortedArray.slice(this.pageSize, this.pageSize + this.pageSize),
             noItemErrorMsg: this.sortedArray.length == 0 ? " " : "none"
           });
           console.log(this.state.docRepositoryItems);
@@ -1529,7 +1916,8 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
           this.setState({
             divForSame: "none",
             divForOtherDepts: "",
-            divForCurrentUser: "none"
+            divForCurrentUser: "none",
+            divForShowingPagination: "",
           });
         });
     }
@@ -1538,18 +1926,41 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
       await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
         select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType")
         .expand("Source,Industry,ClassOfInsurance,NBOStage,Author").top(4000).getPaged().then(async docItems => {
-          docProfileItems = docItems.results;
+          // docProfileItems[this.pageSize] = docItems.results;
+          for (let i = 0; i < this.pageSize; i++) {
+            docProfileItems.push({
+              "ID": null,
+              "Title": null,
+              "BrokeragePercentage": null,
+              "Source": { "ID": null, "Title": null },
+              "Industry": { "ID": null, "Title": null },
+              "ClassOfInsurance": { "ID": null, "Title": null },
+              "NBOStage": { "ID": null, "Title": null },
+              "EstimatedBrokerage": null,
+              "FeesIfAny": null,
+              "Comments": null,
+              "EstimatedStartDate": null,
+              "EstimatedPremium": null,
+              "Department": null,
+              "ComplianceCleared": null,
+              "Author": { "EMail": null, "Title": null },
+              "WeightedBrokerage": null,
+              "OpportunityType": null,
+            });
+          }
+          docProfileItems = docProfileItems.concat(docItems.results);
+          console.log(docProfileItems);
           while (docItems.hasNext) {
             docItems = await docItems.getNext();
             docProfileItems.push(...(docItems.results));
-
           }
           this.sortedArray = _.orderBy(docProfileItems, 'ID', ['desc']);
           this.setState({
             docRepositoryItems: this.sortedArray,
             items: this.sortedArray,
-            paginatedItems: this.sortedArray.slice(0, this.pageSize),
-            noItemErrorMsg: docProfileItems.length == 0 ? " " : "none"
+            paginatedItems: this.sortedArray.slice(this.pageSize, this.pageSize + this.pageSize),
+            noItemErrorMsg: docProfileItems.length == 0 ? " " : "none",
+
           });
           console.log(this.state.docRepositoryItems);
           if (docProfileItems.length == 0) {
@@ -1559,11 +1970,13 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
       this.setState({
         divForSame: "none",
         divForOtherDepts: "",
-        divForCurrentUser: "none"
+        divForCurrentUser: "none",
+        divForShowingPagination: "",
       });
     }
 
   }
+  //updation from mail 
   private updateComplianceFromMail() {
     toast("Compliance Cleared updated successfully");
     this.setState({
@@ -1611,32 +2024,1121 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
       confirmDialog: true,
     });
   }
-  private _onSortClick = (sortBy) => {
-    alert("SortClicked");
-    this.setState({
-      sameDepartmentItems: "no",
-      currentItemID: "",
+  //sorting for MYNBO grid each header
+  private _onSortClickAscForMyNBO = (sortBy, e) => {
+    if (this.state.divForNoDataFound == "none") {
+      let event = e.currentTarget.ariaLabel;
+      let eventID = e.currentTarget.id
+      let docProfileItems = [];
+      console.log(event);
+      this.setState({
+        sameDepartmentItems: "no",
+        currentItemID: "",
+      });
+      sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
+        select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,WeightedBrokerage,OpportunityType").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").filter("Author/EMail eq '" + this.currentUserEmail + "'")
+        .orderBy(sortBy)
+        .top(4000).getPaged()
+        .then(async docItems => {
+          this.setState({ arrayForShowingPagination: docItems.results });
+          for (let i = 0; i < this.pageSize; i++) {
+            docProfileItems.push({
+              "ID": null,
+              "Title": null,
+              "BrokeragePercentage": null,
+              "Source": { "ID": null, "Title": null },
+              "Industry": { "ID": null, "Title": null },
+              "ClassOfInsurance": { "ID": null, "Title": null },
+              "NBOStage": { "ID": null, "Title": null },
+              "EstimatedBrokerage": null,
+              "FeesIfAny": null,
+              "Comments": null,
+              "EstimatedStartDate": null,
+              "EstimatedPremium": null,
+              "Department": null,
+              "ComplianceCleared": null,
+              "Author": { "EMail": null, "Title": null },
+              "WeightedBrokerage": null,
+              "OpportunityType": null,
+            });
+          }
+          docProfileItems = docProfileItems.concat(docItems.results);
+          console.log(docProfileItems);
+          while (docItems.hasNext) {
+            docItems = await docItems.getNext();
+            docProfileItems.push(...(docItems.results));
+          }
 
-    });
-    sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
-      select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,WeightedBrokerage,OpportunityType").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").filter("Author/EMail eq '" + this.currentUserEmail + "'").get().then(docProfileItems => {
-        this.sortedArray = _.orderBy(docProfileItems, sortBy, ['asc']);
-        this.setState({
-          docRepositoryItems: this.sortedArray,
-          items: this.sortedArray,
-          paginatedItems: this.sortedArray.slice(0, this.pageSize),
+          this.sortedArray = docProfileItems;
+          this.setState({
+            docRepositoryItems: this.sortedArray,
+            items: this.sortedArray,
+            paginatedItems: this.sortedArray.slice(this.pageSize, this.pageSize + this.pageSize),
+          });
+          console.log(this.state.docRepositoryItems);
 
         });
-        console.log(this.state.docRepositoryItems);
+      this.setState({
+        divForSame: "none",
+        divForCurrentUser: "",
+        divForOtherDepts: "none",
+        divForDocumentUploadCompArrayDiv: "none",
+      });
+
+      switch (this.sortedArray.length > 0) {
+        case (e.currentTarget.ariaLabel == "OpportunityType" || e.currentTarget.id == "OpportunityType"):
+          this.setState({
+            sortOppurtunityTypeDesc: "",
+            sortOppurtunityTypeAsc: "none",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "Source" || e.currentTarget.id == "Source"):
+          this.setState({
+            SourceTypeDesc: "",
+            SourceTypeAsc: "none",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "Industry" || e.currentTarget.id == "Industry"):
+          this.setState({
+            IndustryTypeDesc: "",
+            IndustryTypeAsc: "none",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "Title" || e.currentTarget.id == "Title"):
+          this.setState({
+            ClientNameTypeDesc: "",
+            ClientNameTypeAsc: "none",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "ClassOfInsurance" || e.currentTarget.id == "ClassOfInsurance"):
+          this.setState({
+            ClassOfInsuranceTypeDesc: "",
+            ClassOfInsuranceTypeAsc: "none",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "EstimatedStartDate" || e.currentTarget.id == "EstimatedStartDate"):
+          this.setState({
+            EstStartDateTypeDesc: "",
+            EstStartDateTypeAsc: "none",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "Comments" || e.currentTarget.id == "Comments"):
+          this.setState({
+            CommentsTypeDesc: "",
+            CommentsTypeAsc: "none",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "EstimatedPremium" || e.currentTarget.id == "EstimatedPremium"):
+          this.setState({
+            EstimatedPremiumTypeDesc: "",
+            EstimatedPremiumTypeAsc: "none",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "BrokeragePercentage" || e.currentTarget.id == "BrokeragePercentage"):
+          this.setState({
+            BrokerageTypeDesc: "",
+            BrokerageTypeAsc: "none",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "EstimatedBrokerage" || e.currentTarget.id == "EstimatedBrokerage"):
+          this.setState({
+            EstimatedBrokerageTypeDesc: "",
+            EstimatedBrokerageTypeAsc: "none",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "NBOStage" || e.currentTarget.id == "NBOStage"):
+          this.setState({
+            NBOStageTypeDesc: "",
+            NBOStageTypeAsc: "none",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "WeightedBrokerage" || e.currentTarget.id == "WeightedBrokerage"):
+          this.setState({
+            WeightedBrokerageTypeDesc: "",
+            WeightedBrokerageTypeAsc: "none",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "FeesIfAny" || e.currentTarget.id == "FeesIfAny"):
+          this.setState({
+            FeesIfAnyTypeDesc: "",
+            FeesIfAnyTypeAsc: "none",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "ComplianceCleared" || e.currentTarget.id == "ComplianceCleared"):
+          this.setState({
+            ComplianceClearedTypeDesc: "",
+            ComplianceClearedTypeAsc: "none",
+          });
+          break;
+
+      }
+    }
+  }
+  private _onSortClickDescForMyNBO = (sortBy, e) => {
+    //alert("SortClicked");
+    if (this.state.divForNoDataFound == "none") {
+      let event = e.currentTarget.ariaLabel;
+      let eventID = e.currentTarget.id
+      let docProfileItems = [];
+      this.setState({
+        sameDepartmentItems: "no",
+        currentItemID: "",
 
       });
-    this.setState({
-      divForSame: "none",
-      divForCurrentUser: "",
-      divForOtherDepts: "none",
-      divForDocumentUploadCompArrayDiv: "none",
+      sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
+        select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,WeightedBrokerage,OpportunityType").expand("Source,Industry,ClassOfInsurance,NBOStage,Author")
+        .filter("Author/EMail eq '" + this.currentUserEmail + "'")
+        .top(4000).getPaged()
+        .then(async docItems => {
+          this.setState({ arrayForShowingPagination: docItems.results });
+          for (let i = 0; i < this.pageSize; i++) {
+            docProfileItems.push({
+              "ID": null,
+              "Title": null,
+              "BrokeragePercentage": null,
+              "Source": { "ID": null, "Title": null },
+              "Industry": { "ID": null, "Title": null },
+              "ClassOfInsurance": { "ID": null, "Title": null },
+              "NBOStage": { "ID": null, "Title": null },
+              "EstimatedBrokerage": null,
+              "FeesIfAny": null,
+              "Comments": null,
+              "EstimatedStartDate": null,
+              "EstimatedPremium": null,
+              "Department": null,
+              "ComplianceCleared": null,
+              "Author": { "EMail": null, "Title": null },
+              "WeightedBrokerage": null,
+              "OpportunityType": null,
+            });
+          }
+          docProfileItems = docProfileItems.concat(docItems.results);
+          console.log(docProfileItems);
+          while (docItems.hasNext) {
+            docItems = await docItems.getNext();
+            docProfileItems.push(...(docItems.results));
+          }
 
+          this.sortedArray = _.orderBy(docProfileItems, sortBy, ['desc']);
+          this.setState({
+            docRepositoryItems: this.sortedArray,
+            items: this.sortedArray,
+            paginatedItems: this.sortedArray.slice(this.pageSize, this.pageSize + this.pageSize),
+          });
+          console.log(this.state.docRepositoryItems);
+
+        });
+      this.setState({
+        divForSame: "none",
+        divForCurrentUser: "",
+        divForOtherDepts: "none",
+        divForDocumentUploadCompArrayDiv: "none",
+
+      });
+      switch (this.sortedArray.length > 0) {
+        case (e.currentTarget.ariaLabel == "OpportunityType" || e.currentTarget.id == "OpportunityType"):
+          this.setState({
+            sortOppurtunityTypeDesc: "none",
+            sortOppurtunityTypeAsc: "",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "Source" || e.currentTarget.id == "Source"):
+          this.setState({
+            SourceTypeDesc: "none",
+            SourceTypeAsc: "",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "Industry" || e.currentTarget.id == "Industry"):
+          this.setState({
+            IndustryTypeDesc: "none",
+            IndustryTypeAsc: "",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "Title" || e.currentTarget.id == "Title"):
+          this.setState({
+            ClientNameTypeDesc: "none",
+            ClientNameTypeAsc: "",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "ClassOfInsurance" || e.currentTarget.id == "ClassOfInsurance"):
+          this.setState({
+            ClassOfInsuranceTypeDesc: "none",
+            ClassOfInsuranceTypeAsc: "",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "EstimatedStartDate" || e.currentTarget.id == "EstimatedStartDate"):
+          this.setState({
+            EstStartDateTypeDesc: "none",
+            EstStartDateTypeAsc: "",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "Comments" || e.currentTarget.id == "Comments"):
+          this.setState({
+            CommentsTypeDesc: "none",
+            CommentsTypeAsc: "",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "EstimatedPremium" || e.currentTarget.id == "EstimatedPremium"):
+          this.setState({
+            EstimatedPremiumTypeDesc: "none",
+            EstimatedPremiumTypeAsc: "",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "Brokerage" || e.currentTarget.id == "Brokerage"):
+          this.setState({
+            BrokerageTypeDesc: "none",
+            BrokerageTypeAsc: "",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "EstimatedBrokerage" || e.currentTarget.id == "EstimatedBrokerage"):
+          this.setState({
+            EstimatedBrokerageTypeDesc: "none",
+            EstimatedBrokerageTypeAsc: "",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "NBOStage" || e.currentTarget.id == "NBOStage"):
+          this.setState({
+            NBOStageTypeDesc: "none",
+            NBOStageTypeAsc: "",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "WeightedBrokerage" || e.currentTarget.id == "WeightedBrokerage"):
+          this.setState({
+            WeightedBrokerageTypeDesc: "none",
+            WeightedBrokerageTypeAsc: "",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "FeesIfAny" || e.currentTarget.id == "FeesIfAny"):
+          this.setState({
+            FeesIfAnyTypeDesc: "none",
+            FeesIfAnyTypeAsc: "",
+          });
+          break;
+        case (e.currentTarget.ariaLabel == "ComplianceCleared" || e.currentTarget.id == "ComplianceCleared"):
+          this.setState({
+            ComplianceClearedTypeDesc: "none",
+            ComplianceClearedTypeAsc: "",
+          });
+          break;
+
+      }
+    }
+  }
+  //sorting for MYNBO grid each header
+  private _onSortClickAscForSameDept = async (sortBy, e) => {
+    if (this.state.divForNoDataFound == "none") {
+      let event = e.currentTarget.ariaLabel;
+      let eventID = e.currentTarget.id;
+      let docProfileItems = [];
+      console.log(event);
+      this.setState({
+        sameDepartmentItems: "Yes",
+        currentItemID: "",
+      });
+      let tempArray = [];
+      await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
+        //select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").filter("Author/EMail ne '" + this.currentUserEmail + "' and (Department eq  '" + this.team + "')")
+        select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType")
+        .expand("Source,Industry,ClassOfInsurance,NBOStage,Author").orderBy(sortBy)
+        .get().then(docItems => {
+          for (let sd = 0; sd < this.state.oppurtunityDept.length; sd++) {
+            for (let listItem = 0; listItem < docItems.length; listItem++) {
+              if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text) {
+                tempArray.push(docItems[listItem]);
+              }
+            }
+          }
+          for (let i = 0; i < this.pageSize; i++) {
+            docProfileItems.push({
+              "ID": null,
+              "Title": null,
+              "BrokeragePercentage": null,
+              "Source": { "ID": null, "Title": null },
+              "Industry": { "ID": null, "Title": null },
+              "ClassOfInsurance": { "ID": null, "Title": null },
+              "NBOStage": { "ID": null, "Title": null },
+              "EstimatedBrokerage": null,
+              "FeesIfAny": null,
+              "Comments": null,
+              "EstimatedStartDate": null,
+              "EstimatedPremium": null,
+              "Department": null,
+              "ComplianceCleared": null,
+              "Author": { "EMail": null, "Title": null },
+              "WeightedBrokerage": null,
+              "OpportunityType": null,
+            });
+          }
+          console.log("SameDept", tempArray);
+          docProfileItems = docProfileItems.concat(tempArray);
+          this.sortedArray = docProfileItems;
+          this.setState({
+            arrayForShowingPagination: tempArray,
+            docRepositoryItems: this.sortedArray,
+            items: this.sortedArray,
+            paginatedItems: this.sortedArray.slice(this.pageSize, this.pageSize + this.pageSize),
+            noItemErrorMsg: tempArray.length == 0 ? " " : "none",
+          });
+          console.log(this.state.docRepositoryItems);
+          if (tempArray.length == 0) {
+            this.setState({ noItemErrorMsg: "" });
+          }
+          this.setState({
+            divForSame: "",
+            divForCurrentUser: "none",
+            divForOtherDepts: "none",
+          });
+
+        });
+
+
+
+      console.log(event);
+      switch (this.sortedArray.length > 0) {
+        case (event == "OpportunityType" || eventID == "OpportunityType"):
+          this.setState({
+            sortOppurtunityTypeDesc: "",
+            sortOppurtunityTypeAsc: "none",
+          });
+          break;
+        case (event == "Source" || eventID == "Source"):
+          this.setState({
+            SourceTypeDesc: "",
+            SourceTypeAsc: "none",
+          });
+          break;
+        case (event == "Industry" || eventID == "Industry"):
+          this.setState({
+            IndustryTypeDesc: "",
+            IndustryTypeAsc: "none",
+          });
+          break;
+        case (event == "Title" || eventID == "Title"):
+          this.setState({
+            ClientNameTypeDesc: "",
+            ClientNameTypeAsc: "none",
+          });
+          break;
+        case (event == "ClassOfInsurance" || eventID == "ClassOfInsurance"):
+          this.setState({
+            ClassOfInsuranceTypeDesc: "",
+            ClassOfInsuranceTypeAsc: "none",
+          });
+          break;
+        case (event == "EstimatedStartDate" || eventID == "EstimatedStartDate"):
+          this.setState({
+            EstStartDateTypeDesc: "",
+            EstStartDateTypeAsc: "none",
+          });
+          break;
+        case (event == "Comments" || eventID == "Comments"):
+          this.setState({
+            CommentsTypeDesc: "",
+            CommentsTypeAsc: "none",
+          });
+          break;
+        case (event == "EstimatedPremium" || eventID == "EstimatedPremium"):
+          this.setState({
+            EstimatedPremiumTypeDesc: "",
+            EstimatedPremiumTypeAsc: "none",
+          });
+          break;
+        case (event == "BrokeragePercentage" || eventID == "BrokeragePercentage"):
+          this.setState({
+            BrokerageTypeDesc: "",
+            BrokerageTypeAsc: "none",
+          });
+          break;
+        case (event == "EstimatedBrokerage" || eventID == "EstimatedBrokerage"):
+          this.setState({
+            EstimatedBrokerageTypeDesc: "",
+            EstimatedBrokerageTypeAsc: "none",
+          });
+          break;
+        case (event == "NBOStage" || eventID == "NBOStage"):
+          this.setState({
+            NBOStageTypeDesc: "",
+            NBOStageTypeAsc: "none",
+          });
+          break;
+        case (event == "WeightedBrokerage" || eventID == "WeightedBrokerage"):
+          this.setState({
+            WeightedBrokerageTypeDesc: "",
+            WeightedBrokerageTypeAsc: "none",
+          });
+          break;
+        case (event == "FeesIfAny" || eventID == "FeesIfAny"):
+          this.setState({
+            FeesIfAnyTypeDesc: "",
+            FeesIfAnyTypeAsc: "none",
+          });
+          break;
+        case (event == "ComplianceCleared" || eventID == "ComplianceCleared"):
+          this.setState({
+            ComplianceClearedTypeDesc: "",
+            ComplianceClearedTypeAsc: "none",
+          });
+          break;
+        case (event == "Department" || eventID == "Department"):
+          this.setState({
+            DepartmentTypeDesc: "",
+            DepartmentTypeAsc: "none",
+          });
+          break;
+        case (event == "Author" || eventID == "Author"):
+          this.setState({
+            CreatedByTypeDesc: "",
+            CreatedByTypeAsc: "none",
+          });
+          break;
+
+      }
+    }
+  }
+  private _onSortClickDescForSameDept = async (sortBy, e) => {
+    if (this.state.divForNoDataFound == "none") {
+      let event = e.currentTarget.ariaLabel;
+      let eventID = e.currentTarget.id;
+      let docProfileItems = [];
+      this.setState({
+        sameDepartmentItems: "Yes",
+        currentItemID: "",
+      });
+      let tempArray = [];
+      await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
+        //select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").filter("Author/EMail ne '" + this.currentUserEmail + "' and (Department eq  '" + this.team + "')")
+        select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType")
+        .expand("Source,Industry,ClassOfInsurance,NBOStage,Author")
+        .get().then(docItems => {
+          for (let sd = 0; sd < this.state.oppurtunityDept.length; sd++) {
+            for (let listItem = 0; listItem < docItems.length; listItem++) {
+              if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text) {
+                tempArray.push(docItems[listItem]);
+              }
+            }
+          }
+          for (let i = 0; i < this.pageSize; i++) {
+            docProfileItems.push({
+              "ID": null,
+              "Title": null,
+              "BrokeragePercentage": null,
+              "Source": { "ID": null, "Title": null },
+              "Industry": { "ID": null, "Title": null },
+              "ClassOfInsurance": { "ID": null, "Title": null },
+              "NBOStage": { "ID": null, "Title": null },
+              "EstimatedBrokerage": null,
+              "FeesIfAny": null,
+              "Comments": null,
+              "EstimatedStartDate": null,
+              "EstimatedPremium": null,
+              "Department": null,
+              "ComplianceCleared": null,
+              "Author": { "EMail": null, "Title": null },
+              "WeightedBrokerage": null,
+              "OpportunityType": null,
+            });
+          }
+          console.log("SameDept", tempArray);
+          docProfileItems = docProfileItems.concat(tempArray);
+          this.sortedArray = _.orderBy(docProfileItems, sortBy, ['desc']);
+          this.setState({
+            arrayForShowingPagination: tempArray,
+            docRepositoryItems: this.sortedArray,
+            items: this.sortedArray,
+            paginatedItems: this.sortedArray.slice(this.pageSize, this.pageSize + this.pageSize),
+            noItemErrorMsg: tempArray.length == 0 ? " " : "none",
+          });
+          console.log(this.state.docRepositoryItems);
+          if (tempArray.length == 0) {
+            this.setState({ noItemErrorMsg: "" });
+          }
+          this.setState({
+            divForSame: "",
+            divForCurrentUser: "none",
+            divForOtherDepts: "none",
+          });
+
+        });
+
+
+
+      switch (this.sortedArray.length > 0) {
+        case (event == "OpportunityType" || eventID == "OpportunityType"):
+          this.setState({
+            sortOppurtunityTypeDesc: "none",
+            sortOppurtunityTypeAsc: "",
+          });
+          break;
+        case (event == "Source" || eventID == "Source"):
+          this.setState({
+            SourceTypeDesc: "none",
+            SourceTypeAsc: "",
+          });
+          break;
+        case (event == "Industry" || eventID == "Industry"):
+          this.setState({
+            IndustryTypeDesc: "none",
+            IndustryTypeAsc: "",
+          });
+          break;
+        case (event == "Title" || eventID == "Title"):
+          this.setState({
+            ClientNameTypeDesc: "none",
+            ClientNameTypeAsc: "",
+          });
+          break;
+        case (event == "ClassOfInsurance" || eventID == "ClassOfInsurance"):
+          this.setState({
+            ClassOfInsuranceTypeDesc: "none",
+            ClassOfInsuranceTypeAsc: "",
+          });
+          break;
+        case (event == "EstimatedStartDate" || eventID == "EstimatedStartDate"):
+          this.setState({
+            EstStartDateTypeDesc: "none",
+            EstStartDateTypeAsc: "",
+          });
+          break;
+        case (event == "Comments" || eventID == "Comments"):
+          this.setState({
+            CommentsTypeDesc: "none",
+            CommentsTypeAsc: "",
+          });
+          break;
+        case (event == "EstimatedPremium" || eventID == "EstimatedPremium"):
+          this.setState({
+            EstimatedPremiumTypeDesc: "none",
+            EstimatedPremiumTypeAsc: "",
+          });
+          break;
+        case (event == "Brokerage" || eventID == "Brokerage"):
+          this.setState({
+            BrokerageTypeDesc: "none",
+            BrokerageTypeAsc: "",
+          });
+          break;
+        case (event == "EstimatedBrokerage" || eventID == "EstimatedBrokerage"):
+          this.setState({
+            EstimatedBrokerageTypeDesc: "none",
+            EstimatedBrokerageTypeAsc: "",
+          });
+          break;
+        case (event == "NBOStage" || eventID == "NBOStage"):
+          this.setState({
+            NBOStageTypeDesc: "none",
+            NBOStageTypeAsc: "",
+          });
+          break;
+        case (event == "WeightedBrokerage" || eventID == "WeightedBrokerage"):
+          this.setState({
+            WeightedBrokerageTypeDesc: "none",
+            WeightedBrokerageTypeAsc: "",
+          });
+          break;
+        case (event == "FeesIfAny" || eventID == "FeesIfAny"):
+          this.setState({
+            FeesIfAnyTypeDesc: "none",
+            FeesIfAnyTypeAsc: "",
+          });
+          break;
+        case (event == "ComplianceCleared" || eventID == "ComplianceCleared"):
+          this.setState({
+            ComplianceClearedTypeDesc: "none",
+            ComplianceClearedTypeAsc: "",
+          });
+          break;
+        case (event == "Department" || eventID == "Department"):
+          this.setState({
+            DepartmentTypeDesc: "none",
+            DepartmentTypeAsc: "",
+          });
+          break;
+        case (event == "Author" || eventID == "Author"):
+          this.setState({
+            CreatedByTypeDesc: "none",
+            CreatedByTypeAsc: "",
+          });
+          break;
+
+      }
+    }
+  }
+  //sorting for Other Dept grid each header
+  private _onSortClickAscForOtherDept = async (sortBy, e) => {
+    if (this.state.divForNoDataFound == "none") {
+      let event = e.currentTarget.ariaLabel;
+      let eventID = e.currentTarget.id;
+      console.log(event);
+      let docProfileItems = [];
+      if (this.state.isNBOAdmin != "true") {
+        //not an NBO Admin
+        let tempArray = [];
+        await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
+          select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType")
+          .expand("Source,Industry,ClassOfInsurance,NBOStage,Author")
+          .filter("Author/EMail ne '" + this.currentUserEmail + "' and Department ne '" + this.team + "'")
+          .orderBy(sortBy)
+          .top(4000).getPaged()
+          .then(async docItems => {
+            // for (let sd = 0; sd < this.state.oppurtunityDept.length; sd++) {
+            //   for (let listItem = 0; listItem < docProfileItems.length; listItem++) {
+            //     if (this.state.oppurtunityDept[sd].text != docProfileItems[listItem].Department) {
+            //       tempArray.push(docProfileItems[listItem]);
+            //     }
+            //   }
+            // }
+            for (let i = 0; i < this.pageSize; i++) {
+              docProfileItems.push({
+                "ID": null,
+                "Title": null,
+                "BrokeragePercentage": null,
+                "Source": { "ID": null, "Title": null },
+                "Industry": { "ID": null, "Title": null },
+                "ClassOfInsurance": { "ID": null, "Title": null },
+                "NBOStage": { "ID": null, "Title": null },
+                "EstimatedBrokerage": null,
+                "FeesIfAny": null,
+                "Comments": null,
+                "EstimatedStartDate": null,
+                "EstimatedPremium": null,
+                "Department": null,
+                "ComplianceCleared": null,
+                "Author": { "EMail": null, "Title": null },
+                "WeightedBrokerage": null,
+                "OpportunityType": null,
+              });
+            }
+            docProfileItems = docProfileItems.concat(docItems.results);
+            console.log(docProfileItems);
+            while (docItems.hasNext) {
+              docItems = await docItems.getNext();
+              docProfileItems.push(...(docItems.results));
+
+            }
+            this.sortedArray = docProfileItems;
+            this.setState({
+              arrayForShowingPagination: docItems.results,
+              docRepositoryItems: this.sortedArray,
+              items: this.sortedArray,
+              paginatedItems: this.sortedArray.slice(this.pageSize, this.pageSize + this.pageSize),
+              noItemErrorMsg: this.sortedArray.length == 0 ? " " : "none"
+            });
+            console.log(this.state.docRepositoryItems);
+            console.log("paginatedItems", this.state.paginatedItems);
+            if (this.sortedArray.length == 0) {
+              this.setState({ noItemErrorMsg: "" });
+            }
+
+            this.setState({
+              divForSame: "none",
+              divForOtherDepts: "",
+              divForCurrentUser: "none"
+            });
+          });
+      }
+      else {
+        //alert(this.state.isNBOAdmin);
+        await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
+          select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType")
+          .expand("Source,Industry,ClassOfInsurance,NBOStage,Author")
+          .orderBy(sortBy)
+          .top(4000).getPaged().then(async docItems => {
+            // docProfileItems[this.pageSize] = docItems.results;
+            for (let i = 0; i < this.pageSize; i++) {
+              docProfileItems.push({
+                "ID": null,
+                "Title": null,
+                "BrokeragePercentage": null,
+                "Source": { "ID": null, "Title": null },
+                "Industry": { "ID": null, "Title": null },
+                "ClassOfInsurance": { "ID": null, "Title": null },
+                "NBOStage": { "ID": null, "Title": null },
+                "EstimatedBrokerage": null,
+                "FeesIfAny": null,
+                "Comments": null,
+                "EstimatedStartDate": null,
+                "EstimatedPremium": null,
+                "Department": null,
+                "ComplianceCleared": null,
+                "Author": { "EMail": null, "Title": null },
+                "WeightedBrokerage": null,
+                "OpportunityType": null,
+              });
+            }
+            docProfileItems = docProfileItems.concat(docItems.results);
+            console.log(docProfileItems);
+            while (docItems.hasNext) {
+              docItems = await docItems.getNext();
+              docProfileItems.push(...(docItems.results));
+            }
+            this.sortedArray = docProfileItems;
+            this.setState({
+              docRepositoryItems: this.sortedArray,
+              items: this.sortedArray,
+              paginatedItems: this.sortedArray.slice(this.pageSize, this.pageSize + this.pageSize),
+              noItemErrorMsg: docProfileItems.length == 0 ? " " : "none",
+
+            });
+            console.log(this.state.docRepositoryItems);
+            if (docProfileItems.length == 0) {
+              this.setState({ noItemErrorMsg: "" });
+            }
+          });
+        this.setState({
+          divForSame: "none",
+          divForOtherDepts: "",
+          divForCurrentUser: "none"
+        });
+      }
+
+      console.log(event);
+      switch (this.sortedArray.length > 0) {
+        case (event == "OpportunityType" || eventID == "OpportunityType"):
+          this.setState({
+            sortOppurtunityTypeDesc: "",
+            sortOppurtunityTypeAsc: "none",
+          });
+          break;
+        case (event == "Source" || eventID == "Source"):
+          this.setState({
+            SourceTypeDesc: "",
+            SourceTypeAsc: "none",
+          });
+          break;
+
+        case (event == "Industry" || eventID == "Industry"):
+          this.setState({
+            IndustryTypeDesc: "",
+            IndustryTypeAsc: "none",
+          });
+          break;
+        case (event == "Title" || eventID == "Title"):
+          this.setState({
+            ClientNameTypeDesc: "",
+            ClientNameTypeAsc: "none",
+          });
+          break;
+        case (event == "ClassOfInsurance" || eventID == "ClassOfInsurance"):
+          this.setState({
+            ClassOfInsuranceTypeDesc: "",
+            ClassOfInsuranceTypeAsc: "none",
+          });
+          break;
+        case (event == "EstimatedStartDate" || eventID == "EstimatedStartDate"):
+          this.setState({
+            EstStartDateTypeDesc: "",
+            EstStartDateTypeAsc: "none",
+          });
+          break;
+        case (event == "Comments" || eventID == "Comments"):
+          this.setState({
+            CommentsTypeDesc: "",
+            CommentsTypeAsc: "none",
+          });
+          break;
+        case (event == "EstimatedPremium" || eventID == "EstimatedPremium"):
+          this.setState({
+            EstimatedPremiumTypeDesc: "",
+            EstimatedPremiumTypeAsc: "none",
+          });
+          break;
+        case (event == "BrokeragePercentage" || eventID == "BrokeragePercentage"):
+          this.setState({
+            BrokerageTypeDesc: "",
+            BrokerageTypeAsc: "none",
+          });
+          break;
+        case (event == "EstimatedBrokerage" || eventID == "EstimatedBrokerage"):
+          this.setState({
+            EstimatedBrokerageTypeDesc: "",
+            EstimatedBrokerageTypeAsc: "none",
+          });
+          break;
+        case (event == "NBOStage" || eventID == "NBOStage"):
+          this.setState({
+            NBOStageTypeDesc: "",
+            NBOStageTypeAsc: "none",
+          });
+          break;
+        case (event == "WeightedBrokerage" || eventID == "WeightedBrokerage"):
+          this.setState({
+            WeightedBrokerageTypeDesc: "",
+            WeightedBrokerageTypeAsc: "none",
+          });
+          break;
+        case (event == "FeesIfAny" || eventID == "FeesIfAny"):
+          this.setState({
+            FeesIfAnyTypeDesc: "",
+            FeesIfAnyTypeAsc: "none",
+          });
+          break;
+        case (event == "ComplianceCleared" || eventID == "ComplianceCleared"):
+          this.setState({
+            ComplianceClearedTypeDesc: "",
+            ComplianceClearedTypeAsc: "none",
+          });
+          break;
+        case (event == "Department" || eventID == "Department"):
+          this.setState({
+            DepartmentTypeDesc: "",
+            DepartmentTypeAsc: "none",
+          });
+          break;
+        case (event == "Author" || eventID == "Author"):
+          this.setState({
+            CreatedByTypeDesc: "",
+            CreatedByTypeAsc: "none",
+          });
+          break;
+
+      }
+    }
+  }
+  private _onSortClickDescForOtherDept = async (sortBy, e) => {
+    if (this.state.divForNoDataFound == "none") {
+      let event = e.currentTarget.ariaLabel;
+      let eventID = e.currentTarget.id;
+      let docProfileItems = [];
+      console.log(event);
+      if (this.state.isNBOAdmin != "true") {
+        //not an NBO Admin
+        let tempArray = [];
+        await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
+          select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType")
+          .expand("Source,Industry,ClassOfInsurance,NBOStage,Author")
+          .filter("Author/EMail ne '" + this.currentUserEmail + "' and Department ne '" + this.team + "'")
+
+          .top(4000).getPaged()
+          .then(async docItems => {
+            // for (let sd = 0; sd < this.state.oppurtunityDept.length; sd++) {
+            //   for (let listItem = 0; listItem < docProfileItems.length; listItem++) {
+            //     if (this.state.oppurtunityDept[sd].text != docProfileItems[listItem].Department) {
+            //       tempArray.push(docProfileItems[listItem]);
+            //     }
+            //   }
+            // }
+            for (let i = 0; i < this.pageSize; i++) {
+              docProfileItems.push({
+                "ID": null,
+                "Title": null,
+                "BrokeragePercentage": null,
+                "Source": { "ID": null, "Title": null },
+                "Industry": { "ID": null, "Title": null },
+                "ClassOfInsurance": { "ID": null, "Title": null },
+                "NBOStage": { "ID": null, "Title": null },
+                "EstimatedBrokerage": null,
+                "FeesIfAny": null,
+                "Comments": null,
+                "EstimatedStartDate": null,
+                "EstimatedPremium": null,
+                "Department": null,
+                "ComplianceCleared": null,
+                "Author": { "EMail": null, "Title": null },
+                "WeightedBrokerage": null,
+                "OpportunityType": null,
+              });
+            }
+            docProfileItems = docProfileItems.concat(docItems.results);
+            console.log(docProfileItems);
+            while (docItems.hasNext) {
+              docItems = await docItems.getNext();
+              docProfileItems.push(...(docItems.results));
+
+            }
+            this.sortedArray = _.orderBy(docProfileItems, sortBy, ['desc']);
+            this.setState({
+              arrayForShowingPagination: docItems.results,
+              docRepositoryItems: this.sortedArray,
+              items: this.sortedArray,
+              paginatedItems: this.sortedArray.slice(this.pageSize, this.pageSize + this.pageSize),
+              noItemErrorMsg: this.sortedArray.length == 0 ? " " : "none"
+            });
+            console.log(this.state.docRepositoryItems);
+            console.log("paginatedItems", this.state.paginatedItems);
+            if (this.sortedArray.length == 0) {
+              this.setState({ noItemErrorMsg: "" });
+            }
+
+            this.setState({
+              divForSame: "none",
+              divForOtherDepts: "",
+              divForCurrentUser: "none"
+            });
+          });
+      }
+      else {
+        //alert(this.state.isNBOAdmin);
+        await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
+          select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType")
+          .expand("Source,Industry,ClassOfInsurance,NBOStage,Author")
+          .top(4000).getPaged().then(async docItems => {
+            // docProfileItems[this.pageSize] = docItems.results;
+            for (let i = 0; i < this.pageSize; i++) {
+              docProfileItems.push({
+                "ID": null,
+                "Title": null,
+                "BrokeragePercentage": null,
+                "Source": { "ID": null, "Title": null },
+                "Industry": { "ID": null, "Title": null },
+                "ClassOfInsurance": { "ID": null, "Title": null },
+                "NBOStage": { "ID": null, "Title": null },
+                "EstimatedBrokerage": null,
+                "FeesIfAny": null,
+                "Comments": null,
+                "EstimatedStartDate": null,
+                "EstimatedPremium": null,
+                "Department": null,
+                "ComplianceCleared": null,
+                "Author": { "EMail": null, "Title": null },
+                "WeightedBrokerage": null,
+                "OpportunityType": null,
+              });
+            }
+            docProfileItems = docProfileItems.concat(docItems.results);
+            console.log(docProfileItems);
+            while (docItems.hasNext) {
+              docItems = await docItems.getNext();
+              docProfileItems.push(...(docItems.results));
+            }
+            this.sortedArray = _.orderBy(docProfileItems, sortBy, ['desc']);
+            this.setState({
+              docRepositoryItems: this.sortedArray,
+              items: this.sortedArray,
+              paginatedItems: this.sortedArray.slice(this.pageSize, this.pageSize + this.pageSize),
+              noItemErrorMsg: docProfileItems.length == 0 ? " " : "none",
+
+            });
+            console.log(this.state.docRepositoryItems);
+            if (docProfileItems.length == 0) {
+              this.setState({ noItemErrorMsg: "" });
+            }
+          });
+        this.setState({
+          divForSame: "none",
+          divForOtherDepts: "",
+          divForCurrentUser: "none"
+        });
+      }
+
+      switch (this.sortedArray.length > 0) {
+        case (event == "OpportunityType" || eventID == "OpportunityType"):
+          this.setState({
+            sortOppurtunityTypeDesc: "none",
+            sortOppurtunityTypeAsc: "",
+          });
+          break;
+        case (event == "Source" || eventID == "Source"):
+          this.setState({
+            SourceTypeDesc: "none",
+            SourceTypeAsc: "",
+          });
+          break;
+        case (event == "Industry" || eventID == "Industry"):
+          this.setState({
+            IndustryTypeDesc: "none",
+            IndustryTypeAsc: "",
+          });
+          break;
+        case (event == "Title" || eventID == "Title"):
+          this.setState({
+            ClientNameTypeDesc: "none",
+            ClientNameTypeAsc: "",
+          });
+          break;
+        case (event == "ClassOfInsurance" || eventID == "ClassOfInsurance"):
+          this.setState({
+            ClassOfInsuranceTypeDesc: "none",
+            ClassOfInsuranceTypeAsc: "",
+          });
+          break;
+        case (event == "EstimatedStartDate" || eventID == "EstimatedStartDate"):
+          this.setState({
+            EstStartDateTypeDesc: "none",
+            EstStartDateTypeAsc: "",
+          });
+          break;
+        case (event == "Comments" || eventID == "Comments"):
+          this.setState({
+            CommentsTypeDesc: "none",
+            CommentsTypeAsc: "",
+          });
+          break;
+        case (event == "EstimatedPremium" || eventID == "EstimatedPremium"):
+          this.setState({
+            EstimatedPremiumTypeDesc: "none",
+            EstimatedPremiumTypeAsc: "",
+          });
+          break;
+        case (event == "Brokerage" || eventID == "Brokerage"):
+          this.setState({
+            BrokerageTypeDesc: "none",
+            BrokerageTypeAsc: "",
+          });
+          break;
+        case (event == "EstimatedBrokerage" || eventID == "EstimatedBrokerage"):
+          this.setState({
+            EstimatedBrokerageTypeDesc: "none",
+            EstimatedBrokerageTypeAsc: "",
+          });
+          break;
+        case (event == "NBOStage" || eventID == "NBOStage"):
+          this.setState({
+            NBOStageTypeDesc: "none",
+            NBOStageTypeAsc: "",
+          });
+          break;
+        case (event == "WeightedBrokerage" || eventID == "WeightedBrokerage"):
+          this.setState({
+            WeightedBrokerageTypeDesc: "none",
+            WeightedBrokerageTypeAsc: "",
+          });
+          break;
+        case (event == "FeesIfAny" || eventID == "FeesIfAny"):
+          this.setState({
+            FeesIfAnyTypeDesc: "none",
+            FeesIfAnyTypeAsc: "",
+          });
+          break;
+        case (event == "ComplianceCleared" || eventID == "ComplianceCleared"):
+          this.setState({
+            ComplianceClearedTypeDesc: "none",
+            ComplianceClearedTypeAsc: "",
+          });
+          break;
+        case (event == "Department" || eventID == "Department"):
+          this.setState({
+            DepartmentTypeDesc: "none",
+            DepartmentTypeAsc: "",
+          });
+          break;
+        case (event == "Author" || eventID == "Author"):
+          this.setState({
+            CreatedByTypeDesc: "none",
+            CreatedByTypeAsc: "",
+          });
+          break;
+
+      }
+    }
+  }
+  //filter
+  private _onFilter = () => {
+    let tempSortedItems = [];
+    this.setState({
+      hideFilterDialog: true,
+      estimatedStartDate: "",
+      filterCondition: "",
+      filterConditions: [],
+      dateForFilter: "none",
+      selectedColumnKey: "",
+      filterConditionKey: "",
+      textFiledForFilter: "",
+      divForNoDataFound: "none",
+      filterValue: "",
+      estimatedFromStartDate: null,
+      estimatedToStartDate: null,
     });
+
   }
   private dialogStyles = { main: { maxWidth: 300 } };
   private dialogContentProps = {
@@ -1645,9 +3147,2811 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
     title: 'Do you want to Delete?',
     //subText: '<b>Do you want to cancel? </b> ',
   };
+  private dialogContentFilterProps = {
+    type: DialogType.normal,
+    closeButtonAriaLabel: 'none',
+    //subText: '<b>Do you want to cancel? </b> ',
+  };
+
+  //   private  _onFilter = (ev: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, text: string): void => {
+  //     let filteredItems = [];
+  //     if (text != "") {
+  //         this.sortedArray.map((item) => {
+  //             let itemValue = false;
+  //             itemValue = Object.keys(item).some((key) => {
+  //                 let requiredfield = fieldInternalName.find(element => element.includes(key)); //fieldInternalName.includes(key);
+  //                 if (requiredfield) {
+  //                     return JSON.stringify(item[key]).toString().toLowerCase().indexOf(text.toLowerCase().trim()) != -1;
+  //                 }
+  //             });
+  //             if (itemValue) {
+  //                 filteredItems.push(item);
+  //             }
+  //         });
+  //     }
+  //     else {
+  //         filteredItems = [...this.sortedArray];
+  //     }
+
+  // };
+
+  private async _onFilterButtonSubmit() {
+
+    if (this.state.selectedColumnKey != "EstimatedStartDate") {
+      if (this.state.selectedColumnKey != "" && this.state.selectedColumnKey != "Select an option" && this.state.filterCondition != "") {
+        this.validator.hideMessages();
+        //same department grid
+        if (this.state.sameDepartmentItems == "Yes") {
+          let docProfileItems = [];
+          this.forDeptCreatedBy = "ok";
+          console.log("departments of current user", this.state.oppurtunityDept);
+          this.setState({
+            currentItemID: "",
+            forOtherDeptFilter: "MYNBOSame",
+          });
+
+          let tempArray = [];
+          await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
+            //select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").filter("Author/EMail ne '" + this.currentUserEmail + "' and (Department eq  '" + this.team + "')")
+            select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType")
+            .expand("Source,Industry,ClassOfInsurance,NBOStage,Author").orderBy("ID", false)
+            .get().then(docItems => {
+              for (let sd = 0; sd < this.state.oppurtunityDept.length; sd++) {
+
+                for (let listItem = 0; listItem < docItems.length; listItem++) {
+                  if (this.state.selectedColumnKey == "OpportunityType") {
+                    if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].OpportunityType == this.state.filterCondition) {
+                      tempArray.push(docItems[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "EstimatedBrokerage") {
+                    console.log(this.state.filterValue);
+                    if (this.state.filterCondition == ">") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].EstimatedBrokerage > this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].EstimatedBrokerage < this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && Number(docItems[listItem].EstimatedBrokerage).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].EstimatedBrokerage != this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].EstimatedBrokerage <= this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].EstimatedBrokerage >= this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+
+                  }
+                  else if (this.state.selectedColumnKey == "FeesIfAny") {
+                    if (this.state.filterCondition == ">") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].FeesIfAny > this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].FeesIfAny < this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && Number(docItems[listItem].FeesIfAny).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && Number(docItems[listItem].FeesIfAny).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].FeesIfAny <= this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].FeesIfAny >= this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "EstimatedPremium") {
+                    if (this.state.filterCondition == ">") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].EstimatedPremium > this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].EstimatedPremium < this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && Number(docItems[listItem].EstimatedPremium).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && Number(docItems[listItem].EstimatedPremium).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].EstimatedPremium <= this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].EstimatedPremium >= this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
 
 
+
+
+                  }
+                  else if (this.state.selectedColumnKey == "WeightedBrokerage") {
+
+                    if (this.state.filterCondition == ">") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].WeightedBrokerage > this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].WeightedBrokerage < this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && Number(docItems[listItem].WeightedBrokerage).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && Number(docItems[listItem].WeightedBrokerage).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].WeightedBrokerage <= this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].WeightedBrokerage >= this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+
+                  }
+                  else if (this.state.selectedColumnKey == "BrokeragePercentage") {
+
+                    if (this.state.filterCondition == ">") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].BrokeragePercentage > this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].BrokeragePercentage < this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && Number(docItems[listItem].BrokeragePercentage).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && Number(docItems[listItem].BrokeragePercentage).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].BrokeragePercentage <= this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].BrokeragePercentage >= this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "EstimatedStartDate") {
+                    let duedate = moment(docItems[listItem].EstimatedStartDate).toDate();
+                    let toDate = moment(this.state.estimatedToStartDate).toDate();
+                    let fromDate = moment(this.state.estimatedFromStartDate).toDate();
+                    duedate = new Date(duedate.getFullYear(), duedate.getMonth(), duedate.getDate());
+                    toDate = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate());
+                    fromDate = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+                    if (moment(duedate).isBetween(fromDate, toDate) || moment(duedate).isSame(fromDate) || moment(duedate).isSame(toDate)) {
+                      tempArray.push(docItems[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Title") {
+
+                    if (this.state.filterCondition == "equals") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Title.toLowerCase() == this.state.filterValue.toLowerCase()) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "not equal to") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Title != this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "Contains") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Title.toLowerCase().includes(this.state.filterValue.toLowerCase())) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Comments") {
+
+                    if (this.state.filterCondition == "equals") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Comments == this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "not equal to") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Comments != this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Department") {
+
+                    if (this.state.filterCondition == "equals") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Department == this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "not equal to") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Department != this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "Contains") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Department.toLowerCase().includes(this.state.filterValue.toLowerCase())) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Author") {
+
+                    if (this.state.filterCondition == "equals") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Author.Title == this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "not equal to") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Author.Title != this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "Contains") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Author.Title.toLowerCase().includes(this.state.filterValue.toLowerCase())) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "ComplianceCleared") {
+                    if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].ComplianceCleared == this.state.filterCondition) {
+                      tempArray.push(docItems[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Industry") {
+                    if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Industry.Title == this.state.filterCondition) {
+                      tempArray.push(docItems[listItem]);
+                    }
+
+                  }
+                  else if (this.state.selectedColumnKey == "ClassOfInsurance") {
+                    if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].ClassOfInsurance.Title == this.state.filterCondition) {
+                      tempArray.push(docItems[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Source") {
+                    if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Source.Title == this.state.filterCondition) {
+                      tempArray.push(docItems[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "NBOStage") {
+                    if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].NBOStage.Title == this.state.filterCondition) {
+                      tempArray.push(docItems[listItem]);
+                    }
+                  }
+                }
+              }
+              for (let i = 0; i < this.pageSize; i++) {
+                docProfileItems.push({
+                  "ID": null,
+                  "Title": null,
+                  "BrokeragePercentage": null,
+                  "Source": { "ID": null, "Title": null },
+                  "Industry": { "ID": null, "Title": null },
+                  "ClassOfInsurance": { "ID": null, "Title": null },
+                  "NBOStage": { "ID": null, "Title": null },
+                  "EstimatedBrokerage": null,
+                  "FeesIfAny": null,
+                  "Comments": null,
+                  "EstimatedStartDate": null,
+                  "EstimatedPremium": null,
+                  "Department": null,
+                  "ComplianceCleared": null,
+                  "Author": { "EMail": null, "Title": null },
+                  "WeightedBrokerage": null,
+                  "OpportunityType": null,
+                });
+              }
+              console.log("SameDept", tempArray);
+              docProfileItems = docProfileItems.concat(tempArray);
+              this.sortedArray = docProfileItems;
+              if (tempArray.length == 0) {
+                this.setState({
+                  divForShowingPagination: "none",
+                  divForNoDataFound: ""
+                });
+              }
+              this.setState({
+                arrayForShowingPagination: tempArray,
+                docRepositoryItems: this.sortedArray,
+                items: this.sortedArray,
+                paginatedItems: this.sortedArray.slice(this.pageSize, this.pageSize + this.pageSize),
+                noItemErrorMsg: tempArray.length == 0 ? " " : "none",
+              });
+              console.log(this.state.docRepositoryItems);
+              if (tempArray.length == 0) {
+                this.setState({ noItemErrorMsg: "" });
+              }
+              this.setState({
+                divForSame: "",
+                divForCurrentUser: "none",
+                divForOtherDepts: "none",
+                hideFilterDialog: false,
+                dateForFilter: "none",
+              });
+
+            });
+
+        }
+        else if (this.state.forOtherDeptFilter == "Other") {
+          let docProfileItems = [];
+          if (this.state.isNBOAdmin != "true") {
+            //not an NBO Admin
+            let tempArray = [];
+            let tempArraydocItems = [];
+            await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
+              select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType")
+              .expand("Source,Industry,ClassOfInsurance,NBOStage,Author").orderBy("ID", false)
+              .filter("Author/EMail ne '" + this.currentUserEmail + "' and Department ne '" + this.team + "'")
+              .top(4000).getPaged()
+              .then(async docItems => {
+
+                tempArraydocItems.push(docItems);
+                for (let listItem = 0; listItem < docItems.results.length; listItem++) {
+                  if (this.state.selectedColumnKey == "OpportunityType") {
+                    if (docItems.results[listItem].OpportunityType == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "EstimatedBrokerage") {
+                    console.log(this.state.filterValue);
+                    if (this.state.filterCondition == ">") {
+                      if (docItems.results[listItem].EstimatedBrokerage > this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems.results[listItem].EstimatedBrokerage < this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (Number(docItems.results[listItem].EstimatedBrokerage).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (docItems.results[listItem].EstimatedBrokerage != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems.results[listItem].EstimatedBrokerage <= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems.results[listItem].EstimatedBrokerage >= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+
+                  }
+                  else if (this.state.selectedColumnKey == "FeesIfAny") {
+                    if (this.state.filterCondition == ">") {
+                      if (docItems.results[listItem].FeesIfAny > this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems.results[listItem].FeesIfAny < this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (Number(docItems.results[listItem].FeesIfAny).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (Number(docItems.results[listItem].FeesIfAny).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems.results[listItem].FeesIfAny <= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems.results[listItem].FeesIfAny >= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "EstimatedPremium") {
+                    if (this.state.filterCondition == ">") {
+                      if (docItems.results[listItem].EstimatedPremium > this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems.results[listItem].EstimatedPremium < this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (Number(docItems.results[listItem].EstimatedPremium).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (Number(docItems.results[listItem].EstimatedPremium).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems.results[listItem].EstimatedPremium <= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems.results[listItem].EstimatedPremium >= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+
+
+
+
+                  }
+                  else if (this.state.selectedColumnKey == "WeightedBrokerage") {
+
+                    if (this.state.filterCondition == ">") {
+                      if (docItems.results[listItem].WeightedBrokerage > this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems.results[listItem].WeightedBrokerage < this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (Number(docItems.results[listItem].WeightedBrokerage).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (Number(docItems.results[listItem].WeightedBrokerage).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems.results[listItem].WeightedBrokerage <= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems.results[listItem].WeightedBrokerage >= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+
+                  }
+                  else if (this.state.selectedColumnKey == "BrokeragePercentage") {
+
+                    if (this.state.filterCondition == ">") {
+                      if (docItems.results[listItem].BrokeragePercentage > this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems.results[listItem].BrokeragePercentage < this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (Number(docItems.results[listItem].BrokeragePercentage).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (Number(docItems.results[listItem].BrokeragePercentage).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems.results[listItem].BrokeragePercentage <= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems.results[listItem].BrokeragePercentage >= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "EstimatedStartDate") {
+                    let duedate = moment(docItems.results[listItem].EstimatedStartDate).toDate();
+                    let toDate = moment(this.state.estimatedToStartDate).toDate();
+                    let fromDate = moment(this.state.estimatedFromStartDate).toDate();
+                    duedate = new Date(duedate.getFullYear(), duedate.getMonth(), duedate.getDate());
+                    toDate = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate());
+                    fromDate = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+                    if (moment(duedate).isBetween(fromDate, toDate) || moment(duedate).isSame(fromDate) || moment(duedate).isSame(toDate)) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Title") {
+
+                    if (this.state.filterCondition == "equals") {
+                      if (docItems.results[listItem].Title.toLowerCase() == this.state.filterValue.toLowerCase()) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "not equal to") {
+                      if (docItems.results[listItem].Title != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "Contains") {
+                      if (docItems.results[listItem].Title.toLowerCase().includes(this.state.filterValue.toLowerCase())) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Comments") {
+
+                    if (this.state.filterCondition == "equals") {
+                      if (docItems.results[listItem].Comments == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "not equal to") {
+                      if (docItems.results[listItem].Comments != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Department") {
+
+                    if (this.state.filterCondition == "equals") {
+                      if (docItems.results[listItem].Department == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "not equal to") {
+                      if (docItems.results[listItem].Department != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "Contains") {
+                      if (docItems.results[listItem].Department.toLowerCase().includes(this.state.filterValue.toLowerCase())) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Author") {
+
+                    if (this.state.filterCondition == "equals") {
+                      if (docItems.results[listItem].Author.Title == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "not equal to") {
+                      if (docItems.results[listItem].Author.Title != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "Contains") {
+                      if (docItems.results[listItem].Author.Title.toLowerCase().includes(this.state.filterValue.toLowerCase())) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "ComplianceCleared") {
+                    if (docItems.results[listItem].ComplianceCleared == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Industry") {
+                    if (docItems.results[listItem].Industry.Title == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+
+                  }
+                  else if (this.state.selectedColumnKey == "ClassOfInsurance") {
+                    if (docItems.results[listItem].ClassOfInsurance.Title == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Source") {
+                    if (docItems.results[listItem].Source.Title == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "NBOStage") {
+                    if (docItems.results[listItem].NBOStage.Title == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                }
+                for (let i = 0; i < this.pageSize; i++) {
+                  docProfileItems.push({
+                    "ID": null,
+                    "Title": null,
+                    "BrokeragePercentage": null,
+                    "Source": { "ID": null, "Title": null },
+                    "Industry": { "ID": null, "Title": null },
+                    "ClassOfInsurance": { "ID": null, "Title": null },
+                    "NBOStage": { "ID": null, "Title": null },
+                    "EstimatedBrokerage": null,
+                    "FeesIfAny": null,
+                    "Comments": null,
+                    "EstimatedStartDate": null,
+                    "EstimatedPremium": null,
+                    "Department": null,
+                    "ComplianceCleared": null,
+                    "Author": { "EMail": null, "Title": null },
+                    "WeightedBrokerage": null,
+                    "OpportunityType": null,
+                  });
+                }
+                docProfileItems = docProfileItems.concat(tempArray);
+                console.log(docProfileItems);
+                while (docItems.hasNext) {
+                  docItems = await docItems.getNext();
+                  docProfileItems.push(...(docItems.results));
+
+                }
+                this.sortedArray = docProfileItems;
+                if (tempArray.length == 0) {
+                  this.setState({
+                    divForShowingPagination: "none",
+                    divForNoDataFound: "",
+                  });
+                }
+                this.setState({
+                  arrayForShowingPagination: docItems.results,
+                  docRepositoryItems: this.sortedArray,
+                  items: this.sortedArray,
+                  paginatedItems: this.sortedArray.slice(this.pageSize, this.pageSize + this.pageSize),
+                  noItemErrorMsg: this.sortedArray.length == 0 ? " " : "none"
+                });
+                console.log(this.state.docRepositoryItems);
+                console.log("paginatedItems", this.state.paginatedItems);
+                if (this.sortedArray.length == 0) {
+                  this.setState({ noItemErrorMsg: "" });
+                }
+
+                this.setState({
+                  divForSame: "none",
+                  divForOtherDepts: "",
+                  divForCurrentUser: "none",
+                  hideFilterDialog: false,
+                  dateForFilter: "none",
+                });
+              });
+          }
+          else {
+            //alert(this.state.isNBOAdmin);
+            let tempArray = [];
+            let tempArraydocItems = [];
+            await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
+              select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType")
+              .expand("Source,Industry,ClassOfInsurance,NBOStage,Author").orderBy("ID", false)
+              .top(4000).getPaged().then(async docItems => {
+                // docProfileItems[this.pageSize] = docItems.results;
+                for (let listItem = 0; listItem < docItems.results.length; listItem++) {
+                  if (this.state.selectedColumnKey == "OpportunityType") {
+                    if (docItems.results[listItem].OpportunityType == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "EstimatedBrokerage") {
+                    console.log(this.state.filterValue);
+                    if (this.state.filterCondition == ">") {
+                      if (docItems.results[listItem].EstimatedBrokerage > this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems.results[listItem].EstimatedBrokerage < this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (Number(docItems.results[listItem].EstimatedBrokerage).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (docItems.results[listItem].EstimatedBrokerage != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems.results[listItem].EstimatedBrokerage <= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems.results[listItem].EstimatedBrokerage >= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+
+                  }
+                  else if (this.state.selectedColumnKey == "FeesIfAny") {
+                    if (this.state.filterCondition == ">") {
+                      if (docItems.results[listItem].FeesIfAny > this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems.results[listItem].FeesIfAny < this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (Number(docItems.results[listItem].FeesIfAny).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (Number(docItems.results[listItem].FeesIfAny).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems.results[listItem].FeesIfAny <= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems.results[listItem].FeesIfAny >= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "EstimatedPremium") {
+                    if (this.state.filterCondition == ">") {
+                      if (docItems.results[listItem].EstimatedPremium > this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems.results[listItem].EstimatedPremium < this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (Number(docItems.results[listItem].EstimatedPremium).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (Number(docItems.results[listItem].EstimatedPremium).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems.results[listItem].EstimatedPremium <= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems.results[listItem].EstimatedPremium >= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+
+
+
+
+                  }
+                  else if (this.state.selectedColumnKey == "WeightedBrokerage") {
+
+                    if (this.state.filterCondition == ">") {
+                      if (docItems.results[listItem].WeightedBrokerage > this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems.results[listItem].WeightedBrokerage < this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (Number(docItems.results[listItem].WeightedBrokerage).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (Number(docItems.results[listItem].WeightedBrokerage).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems.results[listItem].WeightedBrokerage <= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems.results[listItem].WeightedBrokerage >= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+
+                  }
+                  else if (this.state.selectedColumnKey == "BrokeragePercentage") {
+
+                    if (this.state.filterCondition == ">") {
+                      if (docItems.results[listItem].BrokeragePercentage > this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems.results[listItem].BrokeragePercentage < this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (Number(docItems.results[listItem].BrokeragePercentage).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (Number(docItems.results[listItem].BrokeragePercentage).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems.results[listItem].BrokeragePercentage <= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems.results[listItem].BrokeragePercentage >= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "EstimatedStartDate") {
+                    let duedate = moment(docItems.results[listItem].EstimatedStartDate).toDate();
+                    let toDate = moment(this.state.estimatedToStartDate).toDate();
+                    let fromDate = moment(this.state.estimatedFromStartDate).toDate();
+                    duedate = new Date(duedate.getFullYear(), duedate.getMonth(), duedate.getDate());
+                    toDate = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate());
+                    fromDate = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+                    if (moment(duedate).isBetween(fromDate, toDate) || moment(duedate).isSame(fromDate) || moment(duedate).isSame(toDate)) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Title") {
+
+                    if (this.state.filterCondition == "equals") {
+                      if (docItems.results[listItem].Title.toLowerCase() == this.state.filterValue.toLowerCase()) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "not equal to") {
+                      if (docItems.results[listItem].Title != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "Contains") {
+                      if (docItems.results[listItem].Title.toLowerCase().includes(this.state.filterValue.toLowerCase())) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+
+                  }
+                  else if (this.state.selectedColumnKey == "Comments") {
+
+                    if (this.state.filterCondition == "equals") {
+                      if (docItems.results[listItem].Comments == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "not equal to") {
+                      if (docItems.results[listItem].Comments != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Department") {
+
+                    if (this.state.filterCondition == "equals") {
+                      if (docItems.results[listItem].Department.toLowerCase() == this.state.filterValue.toLowerCase) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "not equal to") {
+                      if (docItems.results[listItem].Department != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "Contains") {
+                      if (docItems.results[listItem].Department.toLowerCase().includes(this.state.filterValue.toLowerCase())) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+
+                  }
+                  else if (this.state.selectedColumnKey == "Author") {
+
+                    if (this.state.filterCondition == "equals") {
+                      if (docItems.results[listItem].Author.Title.toLowerCase() == this.state.filterValue.toLowerCase()) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "not equal to") {
+                      if (docItems.results[listItem].Author.Title != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "Contains") {
+                      if (docItems.results[listItem].Author.Title.toLowerCase().includes(this.state.filterValue.toLowerCase())) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "ComplianceCleared") {
+                    if (docItems.results[listItem].ComplianceCleared == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Industry") {
+                    if (docItems.results[listItem].Industry.Title == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+
+                  }
+                  else if (this.state.selectedColumnKey == "ClassOfInsurance") {
+                    if (docItems.results[listItem].ClassOfInsurance.Title == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Source") {
+                    if (docItems.results[listItem].Source.Title == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "NBOStage") {
+                    if (docItems.results[listItem].NBOStage.Title == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                }
+                for (let i = 0; i < this.pageSize; i++) {
+                  docProfileItems.push({
+                    "ID": null,
+                    "Title": null,
+                    "BrokeragePercentage": null,
+                    "Source": { "ID": null, "Title": null },
+                    "Industry": { "ID": null, "Title": null },
+                    "ClassOfInsurance": { "ID": null, "Title": null },
+                    "NBOStage": { "ID": null, "Title": null },
+                    "EstimatedBrokerage": null,
+                    "FeesIfAny": null,
+                    "Comments": null,
+                    "EstimatedStartDate": null,
+                    "EstimatedPremium": null,
+                    "Department": null,
+                    "ComplianceCleared": null,
+                    "Author": { "EMail": null, "Title": null },
+                    "WeightedBrokerage": null,
+                    "OpportunityType": null,
+                  });
+                }
+                docProfileItems = docProfileItems.concat(tempArray);
+                console.log(docProfileItems);
+                while (docItems.hasNext) {
+                  docItems = await docItems.getNext();
+                  docProfileItems.push(...(docItems.results));
+                }
+                this.sortedArray = docProfileItems;
+                if (tempArray.length == 0) {
+                  this.setState({
+                    divForShowingPagination: "none",
+                    divForNoDataFound: "",
+                  });
+                }
+                this.setState({
+                  docRepositoryItems: this.sortedArray,
+                  items: this.sortedArray,
+                  paginatedItems: this.sortedArray.slice(this.pageSize, this.pageSize + this.pageSize),
+                  noItemErrorMsg: docProfileItems.length == 0 ? " " : "none",
+
+                });
+                console.log(this.state.docRepositoryItems);
+                if (docProfileItems.length == 0) {
+                  this.setState({ noItemErrorMsg: "" });
+                }
+              });
+            this.setState({
+              divForSame: "none",
+              divForOtherDepts: "",
+              divForCurrentUser: "none",
+              hideFilterDialog: false,
+              dateForFilter: "none",
+            });
+          }
+        }
+        else {
+          //my nbo   
+
+          let docProfileItems = [];
+          let tempArray = [];
+          let tempArraydocItems = [];
+          sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
+            select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,WeightedBrokerage,OpportunityType").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").filter("Author/EMail eq '" + this.currentUserEmail + "'")
+            .top(4000).getPaged()
+            .then(async docItems => {
+              this.setState({ arrayForShowingPagination: docItems.results, hideFilterDialog: false, });
+              for (let listItem = 0; listItem < docItems.results.length; listItem++) {
+                if (this.state.selectedColumnKey == "OpportunityType") {
+                  if (docItems.results[listItem].OpportunityType == this.state.filterCondition) {
+                    tempArray.push(docItems.results[listItem]);
+                  }
+                }
+                else if (this.state.selectedColumnKey == "EstimatedBrokerage") {
+                  console.log(this.state.filterValue);
+                  if (this.state.filterCondition == ">") {
+                    if (docItems.results[listItem].EstimatedBrokerage > this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "<") {
+                    if (docItems.results[listItem].EstimatedBrokerage < this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "=") {
+                    if (Number(docItems.results[listItem].EstimatedBrokerage).toFixed(0) == this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "!=") {
+                    if (docItems.results[listItem].EstimatedBrokerage != this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "<=") {
+                    if (docItems.results[listItem].EstimatedBrokerage <= this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == ">=") {
+                    if (docItems.results[listItem].EstimatedBrokerage >= this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+
+                }
+                else if (this.state.selectedColumnKey == "FeesIfAny") {
+                  if (this.state.filterCondition == ">") {
+                    if (docItems.results[listItem].FeesIfAny > this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "<") {
+                    if (docItems.results[listItem].FeesIfAny < this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "=") {
+                    if (Number(docItems.results[listItem].FeesIfAny).toFixed(0) == this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "!=") {
+                    if (Number(docItems.results[listItem].FeesIfAny).toFixed(0) != this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "<=") {
+                    if (docItems.results[listItem].FeesIfAny <= this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == ">=") {
+                    if (docItems.results[listItem].FeesIfAny >= this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                }
+                else if (this.state.selectedColumnKey == "EstimatedPremium") {
+                  if (this.state.filterCondition == ">") {
+                    if (docItems.results[listItem].EstimatedPremium > this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "<") {
+                    if (docItems.results[listItem].EstimatedPremium < this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "=") {
+                    if (Number(docItems.results[listItem].EstimatedPremium).toFixed(0) == this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "!=") {
+                    if (Number(docItems.results[listItem].EstimatedPremium).toFixed(0) != this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "<=") {
+                    if (docItems.results[listItem].EstimatedPremium <= this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == ">=") {
+                    if (docItems.results[listItem].EstimatedPremium >= this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+
+
+
+
+                }
+                else if (this.state.selectedColumnKey == "WeightedBrokerage") {
+
+                  if (this.state.filterCondition == ">") {
+                    if (docItems.results[listItem].WeightedBrokerage > this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "<") {
+                    if (docItems.results[listItem].WeightedBrokerage < this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "=") {
+                    if (Number(docItems.results[listItem].WeightedBrokerage).toFixed(0) == this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "!=") {
+                    if (Number(docItems.results[listItem].WeightedBrokerage).toFixed(0) != this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "<=") {
+                    if (docItems.results[listItem].WeightedBrokerage <= this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == ">=") {
+                    if (docItems.results[listItem].WeightedBrokerage >= this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+
+                }
+                else if (this.state.selectedColumnKey == "BrokeragePercentage") {
+
+                  if (this.state.filterCondition == ">") {
+                    if (docItems.results[listItem].BrokeragePercentage > this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "<") {
+                    if (docItems.results[listItem].BrokeragePercentage < this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "=") {
+                    if (Number(docItems.results[listItem].BrokeragePercentage).toFixed(0) == this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "!=") {
+                    if (Number(docItems.results[listItem].BrokeragePercentage).toFixed(0) != this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "<=") {
+                    if (docItems.results[listItem].BrokeragePercentage <= this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == ">=") {
+                    if (docItems.results[listItem].BrokeragePercentage >= this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                }
+                else if (this.state.selectedColumnKey == "EstimatedStartDate") {
+                  let duedate = moment(docItems.results[listItem].EstimatedStartDate).toDate();
+                  let toDate = moment(this.state.estimatedToStartDate).toDate();
+                  let fromDate = moment(this.state.estimatedFromStartDate).toDate();
+                  duedate = new Date(duedate.getFullYear(), duedate.getMonth(), duedate.getDate());
+                  toDate = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate());
+                  fromDate = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+                  if (moment(duedate).isBetween(fromDate, toDate) || moment(duedate).isSame(fromDate) || moment(duedate).isSame(toDate)) {
+                    tempArray.push(docItems.results[listItem]);
+                  }
+
+                }
+                else if (this.state.selectedColumnKey == "Title") {
+
+                  if (this.state.filterCondition == "equals") {
+
+                    if (docItems.results[listItem].Title.toLowerCase() == this.state.filterValue.toLowerCase()) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "not equal to") {
+                    if (docItems.results[listItem].Title != this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "Contains") {
+                    if (docItems.results[listItem].Title.toLowerCase().includes(this.state.filterValue.toLowerCase())) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+
+                }
+                else if (this.state.selectedColumnKey == "Comments") {
+
+                  if (this.state.filterCondition == "equals") {
+                    if (docItems.results[listItem].Comments == this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition != "not equal to") {
+                    if (docItems.results[listItem].Comments == this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                }
+                else if (this.state.selectedColumnKey == "Department") {
+
+                  if (this.state.filterCondition == "equals") {
+                    if (docItems.results[listItem].Department.toLowerCase() == this.state.filterValue.toLowerCase()) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "not equal to") {
+                    if (docItems.results[listItem].Department != this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "Contains") {
+                    if (docItems.results[listItem].Department.toLowerCase().includes(this.state.filterValue.toLowerCase())) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                }
+                else if (this.state.selectedColumnKey == "Author") {
+
+                  if (this.state.filterCondition == "equals") {
+                    if (docItems.results[listItem].Author.Title == this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "not equal to") {
+                    if (docItems.results[listItem].Author.Title != this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "Contains") {
+                    if (docItems.results[listItem].Author.Title.toLowerCase().includes(this.state.filterValue.toLowerCase())) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                }
+                else if (this.state.selectedColumnKey == "ComplianceCleared") {
+                  if (docItems.results[listItem].ComplianceCleared == this.state.filterCondition) {
+                    tempArray.push(docItems.results[listItem]);
+                  }
+                }
+                else if (this.state.selectedColumnKey == "Industry") {
+                  if (docItems.results[listItem].Industry.Title == this.state.filterCondition) {
+                    tempArray.push(docItems.results[listItem]);
+                  }
+
+                }
+                else if (this.state.selectedColumnKey == "ClassOfInsurance") {
+                  if (docItems.results[listItem].ClassOfInsurance.Title == this.state.filterCondition) {
+                    tempArray.push(docItems.results[listItem]);
+                  }
+                }
+                else if (this.state.selectedColumnKey == "Source") {
+                  if (docItems.results[listItem].Source.Title == this.state.filterCondition) {
+                    tempArray.push(docItems.results[listItem]);
+                  }
+                }
+                else if (this.state.selectedColumnKey == "NBOStage") {
+                  if (docItems.results[listItem].NBOStage.Title == this.state.filterCondition) {
+                    tempArray.push(docItems.results[listItem]);
+                  }
+                }
+
+              }
+              for (let i = 0; i < this.pageSize; i++) {
+                docProfileItems.push({
+                  "ID": null,
+                  "Title": null,
+                  "BrokeragePercentage": null,
+                  "Source": { "ID": null, "Title": null },
+                  "Industry": { "ID": null, "Title": null },
+                  "ClassOfInsurance": { "ID": null, "Title": null },
+                  "NBOStage": { "ID": null, "Title": null },
+                  "EstimatedBrokerage": null,
+                  "FeesIfAny": null,
+                  "Comments": null,
+                  "EstimatedStartDate": null,
+                  "EstimatedPremium": null,
+                  "Department": null,
+                  "ComplianceCleared": null,
+                  "Author": { "EMail": null, "Title": null },
+                  "WeightedBrokerage": null,
+                  "OpportunityType": null,
+                });
+              }
+              docProfileItems = docProfileItems.concat(tempArray);
+              console.log(docProfileItems);
+              while (docItems.hasNext) {
+                docItems = await docItems.getNext();
+                docProfileItems.push(...(tempArray));
+              }
+              this.sortedArray = _.orderBy(docProfileItems, 'ID', ['desc']);
+              if (tempArray.length == 0) {
+                this.setState({
+                  divForShowingPagination: "none",
+                  divForNoDataFound: "",
+                });
+              }
+              this.setState({
+                docRepositoryItems: this.sortedArray,
+                items: this.sortedArray,
+                paginatedItems: this.sortedArray.slice(this.pageSize, this.pageSize + this.pageSize),
+
+              });
+              console.log(this.state.docRepositoryItems);
+            });
+          this.setState({
+            divForSame: "none",
+            divForCurrentUser: "",
+            divForOtherDepts: "none",
+            divForDocumentUploadCompArrayDiv: "none",
+            //hideFilterDialog: false,
+            dateForFilter: "none",
+          });
+        }
+      }
+      else {
+        this.validator.showMessages();
+        this.forceUpdate();
+      }
+    }
+    else {
+      if (this.state.selectedColumnKey != "" && this.state.selectedColumnKey != "Select an option") {
+        this.validator.hideMessages();
+        //same department grid
+        if (this.state.sameDepartmentItems == "Yes") {
+          let docProfileItems = [];
+          this.forDeptCreatedBy = "ok";
+          console.log("departments of current user", this.state.oppurtunityDept);
+          this.setState({
+            currentItemID: "",
+            forOtherDeptFilter: "MYNBOSame",
+          });
+
+          let tempArray = [];
+          await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
+            //select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").filter("Author/EMail ne '" + this.currentUserEmail + "' and (Department eq  '" + this.team + "')")
+            select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType").expand("Source,Industry,ClassOfInsurance,NBOStage,Author")
+            .get().then(docItems => {
+              for (let sd = 0; sd < this.state.oppurtunityDept.length; sd++) {
+
+                for (let listItem = 0; listItem < docItems.length; listItem++) {
+                  if (this.state.selectedColumnKey == "OpportunityType") {
+                    if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].OpportunityType == this.state.filterCondition) {
+                      tempArray.push(docItems[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "EstimatedBrokerage") {
+                    console.log(this.state.filterValue);
+                    if (this.state.filterCondition == ">") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].EstimatedBrokerage > this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].EstimatedBrokerage < this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && Number(docItems[listItem].EstimatedBrokerage).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].EstimatedBrokerage != this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].EstimatedBrokerage <= this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].EstimatedBrokerage >= this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+
+                  }
+                  else if (this.state.selectedColumnKey == "FeesIfAny") {
+                    if (this.state.filterCondition == ">") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].FeesIfAny > this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].FeesIfAny < this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && Number(docItems[listItem].FeesIfAny).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && Number(docItems[listItem].FeesIfAny).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].FeesIfAny <= this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].FeesIfAny >= this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "EstimatedPremium") {
+                    if (this.state.filterCondition == ">") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].EstimatedPremium > this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].EstimatedPremium < this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && Number(docItems[listItem].EstimatedPremium).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && Number(docItems[listItem].EstimatedPremium).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].EstimatedPremium <= this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].EstimatedPremium >= this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+
+
+
+
+                  }
+                  else if (this.state.selectedColumnKey == "WeightedBrokerage") {
+
+                    if (this.state.filterCondition == ">") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].WeightedBrokerage > this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].WeightedBrokerage < this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && Number(docItems[listItem].WeightedBrokerage).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && Number(docItems[listItem].WeightedBrokerage).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].WeightedBrokerage <= this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].WeightedBrokerage >= this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+
+                  }
+                  else if (this.state.selectedColumnKey == "BrokeragePercentage") {
+
+                    if (this.state.filterCondition == ">") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].BrokeragePercentage > this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].BrokeragePercentage < this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && Number(docItems[listItem].BrokeragePercentage).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && Number(docItems[listItem].BrokeragePercentage).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].BrokeragePercentage <= this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].BrokeragePercentage >= this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "EstimatedStartDate") {
+                    let duedate = moment(docItems[listItem].EstimatedStartDate).toDate();
+                    let toDate = moment(this.state.estimatedToStartDate).toDate();
+                    let fromDate = moment(this.state.estimatedFromStartDate).toDate();
+                    duedate = new Date(duedate.getFullYear(), duedate.getMonth(), duedate.getDate());
+                    toDate = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate());
+                    fromDate = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+                    if (moment(duedate).isBetween(fromDate, toDate) || moment(duedate).isSame(fromDate) || moment(duedate).isSame(toDate)) {
+                      tempArray.push(docItems[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Title") {
+
+                    if (this.state.filterCondition == "equals") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Title == this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "not equal to") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Title != this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "Contains") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Title.toLowerCase().includes(this.state.filterValue.toLowerCase())) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Comments") {
+
+                    if (this.state.filterCondition == "equals") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Comments == this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "not equal to") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Comments != this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Department") {
+
+                    if (this.state.filterCondition == "equals") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Department == this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "not equal to") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Department != this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Author") {
+
+                    if (this.state.filterCondition == "equals") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Author.Title == this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "not equal to") {
+                      if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Author.Title != this.state.filterValue) {
+                        tempArray.push(docItems[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "ComplianceCleared") {
+                    if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].ComplianceCleared == this.state.filterCondition) {
+                      tempArray.push(docItems[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Industry") {
+                    if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Industry.Title == this.state.filterCondition) {
+                      tempArray.push(docItems[listItem]);
+                    }
+
+                  }
+                  else if (this.state.selectedColumnKey == "ClassOfInsurance") {
+                    if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].ClassOfInsurance.Title == this.state.filterCondition) {
+                      tempArray.push(docItems[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Source") {
+                    if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].Source.Title == this.state.filterCondition) {
+                      tempArray.push(docItems[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "NBOStage") {
+                    if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text && docItems[listItem].NBOStage.Title == this.state.filterCondition) {
+                      tempArray.push(docItems[listItem]);
+                    }
+                  }
+                }
+              }
+              for (let i = 0; i < this.pageSize; i++) {
+                docProfileItems.push({
+                  "ID": null,
+                  "Title": null,
+                  "BrokeragePercentage": null,
+                  "Source": { "ID": null, "Title": null },
+                  "Industry": { "ID": null, "Title": null },
+                  "ClassOfInsurance": { "ID": null, "Title": null },
+                  "NBOStage": { "ID": null, "Title": null },
+                  "EstimatedBrokerage": null,
+                  "FeesIfAny": null,
+                  "Comments": null,
+                  "EstimatedStartDate": null,
+                  "EstimatedPremium": null,
+                  "Department": null,
+                  "ComplianceCleared": null,
+                  "Author": { "EMail": null, "Title": null },
+                  "WeightedBrokerage": null,
+                  "OpportunityType": null,
+                });
+              }
+              console.log("SameDept", tempArray);
+              docProfileItems = docProfileItems.concat(tempArray);
+              this.sortedArray = _.orderBy(docProfileItems, 'ID', ['desc']);
+              if (tempArray.length == 0) {
+                this.setState({
+                  divForShowingPagination: "none",
+                  divForNoDataFound: "",
+                });
+              }
+              this.setState({
+                arrayForShowingPagination: tempArray,
+                docRepositoryItems: this.sortedArray,
+                items: this.sortedArray,
+                paginatedItems: this.sortedArray.slice(this.pageSize, this.pageSize + this.pageSize),
+                noItemErrorMsg: tempArray.length == 0 ? " " : "none",
+              });
+              console.log(this.state.docRepositoryItems);
+              if (tempArray.length == 0) {
+                this.setState({ noItemErrorMsg: "" });
+              }
+              this.setState({
+                divForSame: "",
+                divForCurrentUser: "none",
+                divForOtherDepts: "none",
+                hideFilterDialog: false,
+                dateForFilter: "none",
+              });
+
+            });
+
+        }
+        else if (this.state.forOtherDeptFilter == "Other") {
+          let docProfileItems = [];
+          if (this.state.isNBOAdmin != "true") {
+            //not an NBO Admin
+            let tempArray = [];
+            let tempArraydocItems = [];
+            await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
+              select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType")
+              .expand("Source,Industry,ClassOfInsurance,NBOStage,Author")
+              .filter("Author/EMail ne '" + this.currentUserEmail + "' and Department ne '" + this.team + "'")
+              .top(4000).getPaged()
+              .then(async docItems => {
+
+                tempArraydocItems.push(docItems);
+                for (let listItem = 0; listItem < docItems.results.length; listItem++) {
+                  if (this.state.selectedColumnKey == "OpportunityType") {
+                    if (docItems.results[listItem].OpportunityType == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "EstimatedBrokerage") {
+                    console.log(this.state.filterValue);
+                    if (this.state.filterCondition == ">") {
+                      if (docItems.results[listItem].EstimatedBrokerage > this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems.results[listItem].EstimatedBrokerage < this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (Number(docItems.results[listItem].EstimatedBrokerage).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (docItems.results[listItem].EstimatedBrokerage != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems.results[listItem].EstimatedBrokerage <= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems.results[listItem].EstimatedBrokerage >= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+
+                  }
+                  else if (this.state.selectedColumnKey == "FeesIfAny") {
+                    if (this.state.filterCondition == ">") {
+                      if (docItems.results[listItem].FeesIfAny > this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems.results[listItem].FeesIfAny < this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (Number(docItems.results[listItem].FeesIfAny).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (Number(docItems.results[listItem].FeesIfAny).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems.results[listItem].FeesIfAny <= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems.results[listItem].FeesIfAny >= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "EstimatedPremium") {
+                    if (this.state.filterCondition == ">") {
+                      if (docItems.results[listItem].EstimatedPremium > this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems.results[listItem].EstimatedPremium < this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (Number(docItems.results[listItem].EstimatedPremium).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (Number(docItems.results[listItem].EstimatedPremium).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems.results[listItem].EstimatedPremium <= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems.results[listItem].EstimatedPremium >= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+
+
+
+
+                  }
+                  else if (this.state.selectedColumnKey == "WeightedBrokerage") {
+
+                    if (this.state.filterCondition == ">") {
+                      if (docItems.results[listItem].WeightedBrokerage > this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems.results[listItem].WeightedBrokerage < this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (Number(docItems.results[listItem].WeightedBrokerage).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (Number(docItems.results[listItem].WeightedBrokerage).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems.results[listItem].WeightedBrokerage <= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems.results[listItem].WeightedBrokerage >= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+
+                  }
+                  else if (this.state.selectedColumnKey == "BrokeragePercentage") {
+
+                    if (this.state.filterCondition == ">") {
+                      if (docItems.results[listItem].BrokeragePercentage > this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems.results[listItem].BrokeragePercentage < this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (Number(docItems.results[listItem].BrokeragePercentage).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (Number(docItems.results[listItem].BrokeragePercentage).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems.results[listItem].BrokeragePercentage <= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems.results[listItem].BrokeragePercentage >= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "EstimatedStartDate") {
+                    let duedate = moment(docItems.results[listItem].EstimatedStartDate).toDate();
+                    let toDate = moment(this.state.estimatedToStartDate).toDate();
+                    let fromDate = moment(this.state.estimatedFromStartDate).toDate();
+                    duedate = new Date(duedate.getFullYear(), duedate.getMonth(), duedate.getDate());
+                    toDate = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate());
+                    fromDate = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+                    if (moment(duedate).isBetween(fromDate, toDate) || moment(duedate).isSame(fromDate) || moment(duedate).isSame(toDate)) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Title") {
+
+                    if (this.state.filterCondition == "equals") {
+                      if (docItems.results[listItem].Title == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "not equal to") {
+                      if (docItems.results[listItem].Title != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "Contains") {
+                      if (docItems.results[listItem].Title.toLowerCase().includes(this.state.filterValue.toLowerCase())) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Comments") {
+
+                    if (this.state.filterCondition == "equals") {
+                      if (docItems.results[listItem].Comments == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "not equal to") {
+                      if (docItems.results[listItem].Comments != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Department") {
+
+                    if (this.state.filterCondition == "equals") {
+                      if (docItems.results[listItem].Department == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "not equal to") {
+                      if (docItems.results[listItem].Department != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Author") {
+
+                    if (this.state.filterCondition == "equals") {
+                      if (docItems.results[listItem].Author.Title == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "not equal to") {
+                      if (docItems.results[listItem].Author.Title != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "ComplianceCleared") {
+                    if (docItems.results[listItem].ComplianceCleared == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Industry") {
+                    if (docItems.results[listItem].Industry.Title == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+
+                  }
+                  else if (this.state.selectedColumnKey == "ClassOfInsurance") {
+                    if (docItems.results[listItem].ClassOfInsurance.Title == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Source") {
+                    if (docItems.results[listItem].Source.Title == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "NBOStage") {
+                    if (docItems.results[listItem].NBOStage.Title == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                }
+                for (let i = 0; i < this.pageSize; i++) {
+                  docProfileItems.push({
+                    "ID": null,
+                    "Title": null,
+                    "BrokeragePercentage": null,
+                    "Source": { "ID": null, "Title": null },
+                    "Industry": { "ID": null, "Title": null },
+                    "ClassOfInsurance": { "ID": null, "Title": null },
+                    "NBOStage": { "ID": null, "Title": null },
+                    "EstimatedBrokerage": null,
+                    "FeesIfAny": null,
+                    "Comments": null,
+                    "EstimatedStartDate": null,
+                    "EstimatedPremium": null,
+                    "Department": null,
+                    "ComplianceCleared": null,
+                    "Author": { "EMail": null, "Title": null },
+                    "WeightedBrokerage": null,
+                    "OpportunityType": null,
+                  });
+                }
+                docProfileItems = docProfileItems.concat(tempArray);
+                console.log(docProfileItems);
+                while (docItems.hasNext) {
+                  docItems = await docItems.getNext();
+                  docProfileItems.push(...(docItems.results));
+
+                }
+                this.sortedArray = _.orderBy(docProfileItems, 'ID', ['desc']);
+                if (tempArray.length == 0) {
+                  this.setState({
+                    divForShowingPagination: "none",
+                    divForNoDataFound: "",
+                  });
+                }
+                this.setState({
+                  arrayForShowingPagination: docItems.results,
+                  docRepositoryItems: this.sortedArray,
+                  items: this.sortedArray,
+                  paginatedItems: this.sortedArray.slice(this.pageSize, this.pageSize + this.pageSize),
+                  noItemErrorMsg: this.sortedArray.length == 0 ? " " : "none"
+                });
+                console.log(this.state.docRepositoryItems);
+                console.log("paginatedItems", this.state.paginatedItems);
+                if (this.sortedArray.length == 0) {
+                  this.setState({ noItemErrorMsg: "" });
+                }
+
+                this.setState({
+                  divForSame: "none",
+                  divForOtherDepts: "",
+                  divForCurrentUser: "none",
+                  hideFilterDialog: false,
+                  dateForFilter: "none",
+                });
+              });
+          }
+          else {
+            //alert(this.state.isNBOAdmin);
+            let tempArray = [];
+            let tempArraydocItems = [];
+            await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
+              select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType")
+              .expand("Source,Industry,ClassOfInsurance,NBOStage,Author")
+              .top(4000).getPaged().then(async docItems => {
+                // docProfileItems[this.pageSize] = docItems.results;
+                for (let listItem = 0; listItem < docItems.results.length; listItem++) {
+                  if (this.state.selectedColumnKey == "OpportunityType") {
+                    if (docItems.results[listItem].OpportunityType == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "EstimatedBrokerage") {
+                    console.log(this.state.filterValue);
+                    if (this.state.filterCondition == ">") {
+                      if (docItems.results[listItem].EstimatedBrokerage > this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems.results[listItem].EstimatedBrokerage < this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (Number(docItems.results[listItem].EstimatedBrokerage).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (docItems.results[listItem].EstimatedBrokerage != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems.results[listItem].EstimatedBrokerage <= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems.results[listItem].EstimatedBrokerage >= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+
+                  }
+                  else if (this.state.selectedColumnKey == "FeesIfAny") {
+                    if (this.state.filterCondition == ">") {
+                      if (docItems.results[listItem].FeesIfAny > this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems.results[listItem].FeesIfAny < this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (Number(docItems.results[listItem].FeesIfAny).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (Number(docItems.results[listItem].FeesIfAny).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems.results[listItem].FeesIfAny <= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems.results[listItem].FeesIfAny >= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "EstimatedPremium") {
+                    if (this.state.filterCondition == ">") {
+                      if (docItems.results[listItem].EstimatedPremium > this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems.results[listItem].EstimatedPremium < this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (Number(docItems.results[listItem].EstimatedPremium).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (Number(docItems.results[listItem].EstimatedPremium).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems.results[listItem].EstimatedPremium <= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems.results[listItem].EstimatedPremium >= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+
+
+
+
+                  }
+                  else if (this.state.selectedColumnKey == "WeightedBrokerage") {
+
+                    if (this.state.filterCondition == ">") {
+                      if (docItems.results[listItem].WeightedBrokerage > this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems.results[listItem].WeightedBrokerage < this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (Number(docItems.results[listItem].WeightedBrokerage).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (Number(docItems.results[listItem].WeightedBrokerage).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems.results[listItem].WeightedBrokerage <= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems.results[listItem].WeightedBrokerage >= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+
+                  }
+                  else if (this.state.selectedColumnKey == "BrokeragePercentage") {
+
+                    if (this.state.filterCondition == ">") {
+                      if (docItems.results[listItem].BrokeragePercentage > this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<") {
+                      if (docItems.results[listItem].BrokeragePercentage < this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "=") {
+                      if (Number(docItems.results[listItem].BrokeragePercentage).toFixed(0) == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "!=") {
+                      if (Number(docItems.results[listItem].BrokeragePercentage).toFixed(0) != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "<=") {
+                      if (docItems.results[listItem].BrokeragePercentage <= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == ">=") {
+                      if (docItems.results[listItem].BrokeragePercentage >= this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "EstimatedStartDate") {
+                    let duedate = moment(docItems.results[listItem].EstimatedStartDate).toDate();
+                    let toDate = moment(this.state.estimatedToStartDate).toDate();
+                    let fromDate = moment(this.state.estimatedFromStartDate).toDate();
+                    duedate = new Date(duedate.getFullYear(), duedate.getMonth(), duedate.getDate());
+                    toDate = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate());
+                    fromDate = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+                    if (moment(duedate).isBetween(fromDate, toDate) || moment(duedate).isSame(fromDate) || moment(duedate).isSame(toDate)) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Title") {
+                    if (this.state.filterCondition == "equals") {
+                      if (docItems.results[listItem].Title == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "not equal to") {
+                      if (docItems.results[listItem].Title != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "Contains") {
+                      if (docItems.results[listItem].Title.toLowerCase().includes(this.state.filterValue.toLowerCase())) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+
+                  }
+                  else if (this.state.selectedColumnKey == "Comments") {
+                    if (docItems.results[listItem].Comments == this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Department") {
+                    if (docItems.results[listItem].Department == this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Author") {
+
+                    if (this.state.filterCondition == "equals") {
+                      if (docItems.results[listItem].Author.Title == this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                    else if (this.state.filterCondition == "not equal to") {
+                      if (docItems.results[listItem].Author.Title != this.state.filterValue) {
+                        tempArray.push(docItems.results[listItem]);
+                      }
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "ComplianceCleared") {
+                    if (docItems.results[listItem].ComplianceCleared == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Industry") {
+                    if (docItems.results[listItem].Industry.Title == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+
+                  }
+                  else if (this.state.selectedColumnKey == "ClassOfInsurance") {
+                    if (docItems.results[listItem].ClassOfInsurance.Title == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "Source") {
+                    if (docItems.results[listItem].Source.Title == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.selectedColumnKey == "NBOStage") {
+                    if (docItems.results[listItem].NBOStage.Title == this.state.filterCondition) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                }
+                for (let i = 0; i < this.pageSize; i++) {
+                  docProfileItems.push({
+                    "ID": null,
+                    "Title": null,
+                    "BrokeragePercentage": null,
+                    "Source": { "ID": null, "Title": null },
+                    "Industry": { "ID": null, "Title": null },
+                    "ClassOfInsurance": { "ID": null, "Title": null },
+                    "NBOStage": { "ID": null, "Title": null },
+                    "EstimatedBrokerage": null,
+                    "FeesIfAny": null,
+                    "Comments": null,
+                    "EstimatedStartDate": null,
+                    "EstimatedPremium": null,
+                    "Department": null,
+                    "ComplianceCleared": null,
+                    "Author": { "EMail": null, "Title": null },
+                    "WeightedBrokerage": null,
+                    "OpportunityType": null,
+                  });
+                }
+                docProfileItems = docProfileItems.concat(tempArray);
+                console.log(docProfileItems);
+                while (docItems.hasNext) {
+                  docItems = await docItems.getNext();
+                  docProfileItems.push(...(docItems.results));
+                }
+                this.sortedArray = _.orderBy(docProfileItems, 'ID', ['desc']);
+                if (tempArray.length == 0) {
+                  this.setState({
+                    divForShowingPagination: "none",
+                    divForNoDataFound: "",
+                  });
+                }
+                this.setState({
+                  docRepositoryItems: this.sortedArray,
+                  items: this.sortedArray,
+                  paginatedItems: this.sortedArray.slice(this.pageSize, this.pageSize + this.pageSize),
+                  noItemErrorMsg: docProfileItems.length == 0 ? " " : "none",
+                });
+                console.log(this.state.docRepositoryItems);
+                if (docProfileItems.length == 0) {
+                  this.setState({ noItemErrorMsg: "" });
+                }
+              });
+            this.setState({
+              divForSame: "none",
+              divForOtherDepts: "",
+              divForCurrentUser: "none",
+              hideFilterDialog: false,
+              dateForFilter: "none",
+            });
+          }
+        }
+        else {
+          //my nbo  
+
+          let docProfileItems = [];
+          let tempArray = [];
+          let tempArraydocItems = [];
+          sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName).items.
+            select("ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,WeightedBrokerage,OpportunityType").expand("Source,Industry,ClassOfInsurance,NBOStage,Author").filter("Author/EMail eq '" + this.currentUserEmail + "'")
+            .top(4000).getPaged()
+            .then(async docItems => {
+              this.setState({ arrayForShowingPagination: docItems.results, hideFilterDialog: false, });
+              for (let listItem = 0; listItem < docItems.results.length; listItem++) {
+                if (this.state.selectedColumnKey == "OpportunityType") {
+                  if (docItems.results[listItem].OpportunityType == this.state.filterCondition) {
+                    tempArray.push(docItems.results[listItem]);
+                  }
+                }
+                else if (this.state.selectedColumnKey == "EstimatedBrokerage") {
+                  console.log(this.state.filterValue);
+                  if (this.state.filterCondition == ">") {
+                    if (docItems.results[listItem].EstimatedBrokerage > this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "<") {
+                    if (docItems.results[listItem].EstimatedBrokerage < this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "=") {
+                    if (Number(docItems.results[listItem].EstimatedBrokerage).toFixed(0) == this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "!=") {
+                    if (docItems.results[listItem].EstimatedBrokerage != this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "<=") {
+                    if (docItems.results[listItem].EstimatedBrokerage <= this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == ">=") {
+                    if (docItems.results[listItem].EstimatedBrokerage >= this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+
+                }
+                else if (this.state.selectedColumnKey == "FeesIfAny") {
+                  if (this.state.filterCondition == ">") {
+                    if (docItems.results[listItem].FeesIfAny > this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "<") {
+                    if (docItems.results[listItem].FeesIfAny < this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "=") {
+                    if (Number(docItems.results[listItem].FeesIfAny).toFixed(0) == this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "!=") {
+                    if (Number(docItems.results[listItem].FeesIfAny).toFixed(0) != this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "<=") {
+                    if (docItems.results[listItem].FeesIfAny <= this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == ">=") {
+                    if (docItems.results[listItem].FeesIfAny >= this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                }
+                else if (this.state.selectedColumnKey == "EstimatedPremium") {
+                  if (this.state.filterCondition == ">") {
+                    if (docItems.results[listItem].EstimatedPremium > this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "<") {
+                    if (docItems.results[listItem].EstimatedPremium < this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "=") {
+                    if (Number(docItems.results[listItem].EstimatedPremium).toFixed(0) == this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "!=") {
+                    if (Number(docItems.results[listItem].EstimatedPremium).toFixed(0) != this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "<=") {
+                    if (docItems.results[listItem].EstimatedPremium <= this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == ">=") {
+                    if (docItems.results[listItem].EstimatedPremium >= this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+
+
+
+
+                }
+                else if (this.state.selectedColumnKey == "WeightedBrokerage") {
+
+                  if (this.state.filterCondition == ">") {
+                    if (docItems.results[listItem].WeightedBrokerage > this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "<") {
+                    if (docItems.results[listItem].WeightedBrokerage < this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "=") {
+                    if (Number(docItems.results[listItem].WeightedBrokerage).toFixed(0) == this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "!=") {
+                    if (Number(docItems.results[listItem].WeightedBrokerage).toFixed(0) != this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "<=") {
+                    if (docItems.results[listItem].WeightedBrokerage <= this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == ">=") {
+                    if (docItems.results[listItem].WeightedBrokerage >= this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+
+                }
+                else if (this.state.selectedColumnKey == "BrokeragePercentage") {
+
+                  if (this.state.filterCondition == ">") {
+                    if (docItems.results[listItem].BrokeragePercentage > this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "<") {
+                    if (docItems.results[listItem].BrokeragePercentage < this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "=") {
+                    if (Number(docItems.results[listItem].BrokeragePercentage).toFixed(0) == this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "!=") {
+                    if (Number(docItems.results[listItem].BrokeragePercentage).toFixed(0) != this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "<=") {
+                    if (docItems.results[listItem].BrokeragePercentage <= this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == ">=") {
+                    if (docItems.results[listItem].BrokeragePercentage >= this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                }
+                else if (this.state.selectedColumnKey == "EstimatedStartDate") {
+                  let duedate = moment(docItems.results[listItem].EstimatedStartDate).toDate();
+                  let toDate = moment(this.state.estimatedToStartDate).toDate();
+                  let fromDate = moment(this.state.estimatedFromStartDate).toDate();
+                  duedate = new Date(duedate.getFullYear(), duedate.getMonth(), duedate.getDate());
+                  toDate = new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate());
+                  fromDate = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
+                  if (moment(duedate).isBetween(fromDate, toDate) || moment(duedate).isSame(fromDate) || moment(duedate).isSame(toDate)) {
+                    tempArray.push(docItems.results[listItem]);
+                  }
+                }
+                else if (this.state.selectedColumnKey == "Title") {
+
+                  if (this.state.filterCondition == "equals") {
+                    if (docItems.results[listItem].Title == this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "not equal to") {
+                    if (docItems.results[listItem].Title != this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+
+                }
+                else if (this.state.selectedColumnKey == "Comments") {
+
+                  if (this.state.filterCondition == "equals") {
+                    if (docItems.results[listItem].Comments == this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition != "not equal to") {
+                    if (docItems.results[listItem].Comments == this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                }
+                else if (this.state.selectedColumnKey == "Department") {
+
+                  if (this.state.filterCondition == "equals") {
+                    if (docItems.results[listItem].Department == this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "not equal to") {
+                    if (docItems.results[listItem].Department != this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                }
+                else if (this.state.selectedColumnKey == "Author") {
+
+                  if (this.state.filterCondition == "equals") {
+                    if (docItems.results[listItem].Author.Title == this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                  else if (this.state.filterCondition == "not equal to") {
+                    if (docItems.results[listItem].Author.Title != this.state.filterValue) {
+                      tempArray.push(docItems.results[listItem]);
+                    }
+                  }
+                }
+                else if (this.state.selectedColumnKey == "ComplianceCleared") {
+                  if (docItems.results[listItem].ComplianceCleared == this.state.filterCondition) {
+                    tempArray.push(docItems.results[listItem]);
+                  }
+                }
+                else if (this.state.selectedColumnKey == "Industry") {
+                  if (docItems.results[listItem].Industry.Title == this.state.filterCondition) {
+                    tempArray.push(docItems.results[listItem]);
+                  }
+
+                }
+                else if (this.state.selectedColumnKey == "ClassOfInsurance") {
+                  if (docItems.results[listItem].ClassOfInsurance.Title == this.state.filterCondition) {
+                    tempArray.push(docItems.results[listItem]);
+                  }
+                }
+                else if (this.state.selectedColumnKey == "Source") {
+                  if (docItems.results[listItem].Source.Title == this.state.filterCondition) {
+                    tempArray.push(docItems.results[listItem]);
+                  }
+                }
+                else if (this.state.selectedColumnKey == "NBOStage") {
+                  if (docItems.results[listItem].NBOStage.Title == this.state.filterCondition) {
+                    tempArray.push(docItems.results[listItem]);
+                  }
+                }
+
+              }
+
+              // alert(tempArray.length);
+
+              for (let i = 0; i < this.pageSize; i++) {
+                docProfileItems.push({
+                  "ID": null,
+                  "Title": null,
+                  "BrokeragePercentage": null,
+                  "Source": { "ID": null, "Title": null },
+                  "Industry": { "ID": null, "Title": null },
+                  "ClassOfInsurance": { "ID": null, "Title": null },
+                  "NBOStage": { "ID": null, "Title": null },
+                  "EstimatedBrokerage": null,
+                  "FeesIfAny": null,
+                  "Comments": null,
+                  "EstimatedStartDate": null,
+                  "EstimatedPremium": null,
+                  "Department": null,
+                  "ComplianceCleared": null,
+                  "Author": { "EMail": null, "Title": null },
+                  "WeightedBrokerage": null,
+                  "OpportunityType": null,
+                });
+              }
+              docProfileItems = docProfileItems.concat(tempArray);
+              console.log(docProfileItems);
+              while (docItems.hasNext) {
+                docItems = await docItems.getNext();
+                docProfileItems.push(...(tempArray));
+              }
+
+              this.sortedArray = _.orderBy(docProfileItems, 'ID', ['desc']);
+              if (tempArray.length == 0) {
+                this.setState({
+                  divForShowingPagination: "none",
+                  divForNoDataFound: "",
+                });
+              }
+              this.setState({
+                docRepositoryItems: this.sortedArray,
+                items: this.sortedArray,
+                paginatedItems: this.sortedArray.slice(this.pageSize, this.pageSize + this.pageSize),
+              });
+              console.log(this.state.docRepositoryItems);
+
+            });
+
+          this.setState({
+            divForSame: "none",
+            divForCurrentUser: "",
+            divForOtherDepts: "none",
+            divForDocumentUploadCompArrayDiv: "none",
+            hideFilterDialog: false,
+            dateForFilter: "none",
+          });
+        }
+      }
+      else {
+        this.validator.showMessages();
+        this.forceUpdate();
+      }
+    }
+  }
+  private _onFilterForModal = (ev: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, text: string): void => {
+    if (text == "") {
+      this.loadDocProfile();
+    }
+    else {
+      let dataToFilter = this.state.selectedColumnKey;
+      this.setState({
+        paginatedItems: text ? this.state.paginatedItems.filter(i => i.Title.toLowerCase().indexOf(text.toString().toLowerCase()) > -1) : this.state.paginatedItems,
+      });
+    }
+  }
   public render(): React.ReactElement<INboDetailListProps> {
+
+
+    const menuPropsFilter: IContextualMenuProps = {
+      items: [
+        {
+          key: 'ColumnFilter',
+          text: 'Column Filter',
+          iconProps: { iconName: 'Filter' },
+          onClick: this._onFilter,
+        },
+        {
+          key: 'ClearFilters',
+          text: 'Clear Filters',
+          iconProps: { iconName: 'ClearFilter' },
+          onClick: this._filterPanelCloseButton,
+        },
+      ],
+    };
     const menuProps: IContextualMenuProps = {
       items: [
         {
@@ -1678,7 +5982,26 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
     const OpportunityType: IDropdownOption[] = [
       { key: 'New', text: 'New' },
       { key: 'Expanded', text: 'Expanded' },
+    ];
 
+    const MyNBOFilterColumns: IDropdownOption[] = [
+      { key: 'Select an option', text: 'Select an option' },
+      { key: 'OpportunityType', text: 'OpportunityType', hidden: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" || this.state.forOtherDeptFilter == "MYNBOSame") ? false : true },
+      { key: 'Source', text: 'Source' },
+      { key: 'Industry', text: 'Industry' },
+      { key: 'Title', text: 'Client Name' },
+      { key: 'ClassOfInsurance', text: 'Class Of Insurance' },
+      { key: 'EstimatedStartDate', text: 'Estimated Start Date', hidden: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" || this.state.forOtherDeptFilter == "MYNBOSame") ? false : true },
+      // { key: 'Comments', text: 'Comments', hidden: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" || this.state.forOtherDeptFilter == "MYNBOSame") ? false : true },
+      { key: 'EstimatedPremium', text: 'Estimated Premium', hidden: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" || this.state.forOtherDeptFilter == "MYNBOSame") ? false : true },
+      { key: 'BrokeragePercentage', text: 'Brokerage Percentage', hidden: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" || this.state.forOtherDeptFilter == "MYNBOSame") ? false : true },
+      { key: 'EstimatedBrokerage', text: 'Estimated Brokerage', hidden: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" || this.state.forOtherDeptFilter == "MYNBOSame") ? false : true },
+      { key: 'NBOStage', text: 'NBO Stage', hidden: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" || this.state.forOtherDeptFilter == "MYNBOSame") ? false : true },
+      { key: 'WeightedBrokerage', text: 'Weighted Brokerage', hidden: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" || this.state.forOtherDeptFilter == "MYNBOSame") ? false : true },
+      { key: 'FeesIfAny', text: 'Fees If Any', hidden: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" || this.state.forOtherDeptFilter == "MYNBOSame") ? false : true },
+      { key: 'ComplianceCleared', text: 'Compliance Cleared', hidden: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" || this.state.forOtherDeptFilter == "MYNBOSame") ? false : true },
+      { key: 'Department', text: 'Department', hidden: (this.forDeptCreatedBy == "ok") ? false : true },
+      { key: 'Author', text: 'Created By', hidden: (this.forDeptCreatedBy == "ok") ? false : true },
     ];
     const DeleteIcon: IIconProps = { iconName: 'Delete' };
     const ShowDocuments: IIconProps = { iconName: 'DocumentSet' };
@@ -1686,6 +6009,7 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
     const midBar: IIconProps = { iconName: 'BulletedListBulletMirrored' };
     return (
       <div className={styles.nboDetailList}>
+
         <><div className={styles.nboDetailList} style={{ display: this.state.displayWithOutQuery }}>
 
           <div style={{ display: "flex" }}>
@@ -1714,6 +6038,17 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
                 menuProps={menuProps}
                 style={{ color: "#25ddd0" }} />
             </div>
+            <div>
+              <CommandButton
+                iconProps={FilterIcon}
+                text="Filter"
+                primary
+                split
+                splitButtonAriaLabel="See 2 options"
+                aria-roledescription="split button"
+                menuProps={menuPropsFilter}
+                style={{ color: "#25ddd0" }} />
+            </div>
           </div>
 
           <div style={{ display: this.state.deleteMessageBar }}>
@@ -1728,62 +6063,126 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
           </div>
           {/* currenUserdiv */}
           <div style={{ display: this.state.divForCurrentUser, marginTop: "10px", overflowX: "auto" }}>
+            {/* <SearchBox placeholder="Type application name" className={styles['ms-SearchBox']} onSearch={newValue => console.log('value is ' + newValue)} onChange={this._onFilterForModal} /> */}
             <div className={styles.Heading} style={{ display: this.state.sameDepartmentItems == "Yes" ? "none" : "" }}> My NBO Pipeline</div>
             <div style={{ display: this.state.docRepositoryItems.length == 0 ? "" : "none", color: "#f4f4f4", textAlign: "center" }}> <h1>No items</h1></div>
+
             <table style={{ overflowX: "scroll", display: this.state.docRepositoryItems.length == 0 ? "none" : "" }}>
               <tr style={{ background: "#f4f4f4" }}>
                 <th style={{ padding: "5px 10px", }}>Edit</th>
                 {/* <th style={{ padding: "5px 10px", }}>Delete</th> */}
                 <th style={{ padding: "5px 10px", }}>View Documents </th>
-                <th style={{ padding: "5px 10px" }}>Opportunity Type <IconButton style={{ color: "Black" }} iconProps={FilterIcon} title="sort" ariaLabel="Delete" onClick={() => this._onSortClick('OpportunityType')} /></th>
-                <th style={{ padding: "5px 10px" }}>Source</th>
-                <th style={{ padding: "5px 10px" }}>Industry</th>
-                <th style={{ padding: "5px 10px" }}>Client Name</th>
-                <th style={{ padding: "5px 10px", }}>Class of Insurance</th>
-                <th style={{ padding: "5px 10px", }}>Est Start Date <IconButton style={{ color: "Black" }} iconProps={FilterIcon} title="sort" ariaLabel="Delete" onClick={() => this._onSortClick('EstimatedStartDate')} /></th>
-                <th style={{ padding: "5px 10px", }}>Comments</th>
-                <th style={{ padding: "5px 10px", }}>Estimated Premium</th>
-                <th style={{ padding: "5px 10px" }}>Brokerage %</th>
-                <th style={{ padding: "5px 10px" }}>Estimated Brokerage</th>
-                <th style={{ padding: "5px 10px", }}>NBO stage</th>
-                <th style={{ padding: "5px 10px", }}>Weighted brokerage</th>
-                <th style={{ padding: "5px 10px", }}>Fees If Any</th>
-                <th style={{ padding: "5px 10px", }}>Compliance Cleared</th>
+                <th style={{ padding: "5px 10px", }}>
+                  <div style={{ display: "flex" }}>
+                    Opportunity Type
+                    <IconButton id="OpportunityType" style={{ color: "Black", display: this.state.sortOppurtunityTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="OpportunityType" onClick={(e) => this._onSortClickAscForMyNBO('OpportunityType', e)} />
+                    <IconButton id="OpportunityType" style={{ color: "Black", display: this.state.sortOppurtunityTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="OpportunityType" onClick={(e) => this._onSortClickDescForMyNBO('OpportunityType', e)} />
+
+                  </div>
+                </th>
+                <th style={{ padding: "5px 10px", }}>
+                  <div style={{ display: "flex" }}>Source
+                    <IconButton id="Source" style={{ color: "Black", display: this.state.SourceTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Source" onClick={(e) => this._onSortClickAscForMyNBO('Source', e)} />
+                    <IconButton id="Source" style={{ color: "Black", display: this.state.SourceTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Source" onClick={(e) => this._onSortClickDescForMyNBO('Source', e)} />
+
+                  </div></th>
+
+                <th style={{ padding: "5px 10px" }}>
+                  <div style={{ display: "flex" }}> Industry
+                    <IconButton id="Industry" style={{ color: "Black", display: this.state.IndustryTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Industry" onClick={(e) => this._onSortClickAscForMyNBO('Industry', e)} />
+                    <IconButton id="Industry" style={{ color: "Black", display: this.state.IndustryTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Industry" onClick={(e) => this._onSortClickDescForMyNBO('Industry', e)} />
+                  </div>
+                </th>
+                <th style={{ padding: "5px 10px" }}>
+                  <div style={{ display: "flex" }}>Client Name
+                    <IconButton id="ClientName" style={{ color: "Black", display: this.state.ClientNameTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Title" onClick={(e) => this._onSortClickAscForMyNBO('Title', e)} />
+                    <IconButton id="ClientName" style={{ color: "Black", display: this.state.ClientNameTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Title" onClick={(e) => this._onSortClickDescForMyNBO('Title', e)} />
+                  </div> </th>
+                <th style={{ padding: "5px 10px", }}>
+                  <div style={{ display: "flex" }}>Class of Insurance
+                    <IconButton id="ClassOfInsurance" style={{ color: "Black", display: this.state.ClassOfInsuranceTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="ClassOfInsurance" onClick={(e) => this._onSortClickAscForMyNBO('ClassOfInsurance', e)} />
+                    <IconButton id="ClassOfInsurance" style={{ color: "Black", display: this.state.ClassOfInsuranceTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="ClassOfInsurance" onClick={(e) => this._onSortClickDescForMyNBO('ClassOfInsurance', e)} />
+                  </div></th>
+                <th style={{ padding: "5px 10px", }}>
+                  <div style={{ display: "flex" }}>Est Start Date
+                    <IconButton id="EstimatedStartDate" style={{ color: "Black", display: this.state.EstStartDateTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="EstimatedStartDate" onClick={(e) => this._onSortClickAscForMyNBO('EstimatedStartDate', e)} />
+                    <IconButton id="EstimatedStartDate" style={{ color: "Black", display: this.state.EstStartDateTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="EstimatedStartDate" onClick={(e) => this._onSortClickDescForMyNBO('EstimatedStartDate', e)} />
+                  </div></th>
+                <th style={{ padding: "5px 10px", }}>
+                  <div style={{ display: "flex" }}>Comments
+                    <IconButton id="Comments" style={{ color: "Black", display: this.state.CommentsTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Comments" onClick={(e) => this._onSortClickAscForMyNBO('Comments', e)} />
+                    <IconButton id="Comments" style={{ color: "Black", display: this.state.CommentsTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Comments" onClick={(e) => this._onSortClickDescForMyNBO('Comments', e)} />
+                  </div></th>
+                <th style={{ padding: "5px 10px", }}>
+                  <div style={{ display: "flex" }}>Estimated Premium
+                    <IconButton id="EstimatedPremium" style={{ color: "Black", display: this.state.EstimatedPremiumTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="EstimatedPremium" onClick={(e) => this._onSortClickAscForMyNBO('EstimatedPremium', e)} />
+                    <IconButton id="EstimatedPremium" style={{ color: "Black", display: this.state.EstimatedPremiumTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="EstimatedPremium" onClick={(e) => this._onSortClickDescForMyNBO('EstimatedPremium', e)} />
+                  </div></th>
+                <th style={{ padding: "5px 10px" }}>
+                  <div style={{ display: "flex" }}>Brokerage %
+                    <IconButton id="Brokerage" style={{ color: "Black", display: this.state.BrokerageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="BrokeragePercentage" onClick={(e) => this._onSortClickAscForMyNBO('BrokeragePercentage', e)} />
+                    <IconButton id="Brokerage" style={{ color: "Black", display: this.state.BrokerageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="BrokeragePercentage" onClick={(e) => this._onSortClickDescForMyNBO('BrokeragePercentage', e)} />
+                  </div></th>
+                <th style={{ padding: "5px 10px" }}>
+                  <div style={{ display: "flex" }}>Estimated Brokerage
+                    <IconButton id="EstimatedBrokerage" style={{ color: "Black", display: this.state.EstimatedBrokerageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="EstimatedBrokerage" onClick={(e) => this._onSortClickAscForMyNBO('EstimatedBrokerage', e)} />
+                    <IconButton id="EstimatedBrokerage" style={{ color: "Black", display: this.state.EstimatedBrokerageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="EstimatedBrokerage" onClick={(e) => this._onSortClickDescForMyNBO('EstimatedBrokerage', e)} />
+                  </div></th>
+                <th style={{ padding: "5px 10px", }}>
+                  <div style={{ display: "flex" }}>NBO Stage
+                    <IconButton id="NBOStage" style={{ color: "Black", display: this.state.NBOStageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="NBOStage" onClick={(e) => this._onSortClickAscForMyNBO('NBOStage', e)} />
+                    <IconButton id="NBOStage" style={{ color: "Black", display: this.state.NBOStageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="NBOStage" onClick={(e) => this._onSortClickDescForMyNBO('NBOStage', e)} />
+                  </div></th>
+                <th style={{ padding: "5px 10px", }}>
+                  <div style={{ display: "flex" }}>Weighted Brokerage
+                    <IconButton id="WeightedBrokerage" style={{ color: "Black", display: this.state.WeightedBrokerageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="WeightedBrokerage" onClick={(e) => this._onSortClickAscForMyNBO('WeightedBrokerage', e)} />
+                    <IconButton id="WeightedBrokerage" style={{ color: "Black", display: this.state.WeightedBrokerageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="WeightedBrokerage" onClick={(e) => this._onSortClickDescForMyNBO('WeightedBrokerage', e)} />
+                  </div></th>
+                <th style={{ padding: "5px 10px", }}>
+                  <div style={{ display: "flex" }}>Fees If Any
+                    <IconButton id="FeesIfAny" style={{ color: "Black", display: this.state.FeesIfAnyTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="FeesIfAny" onClick={(e) => this._onSortClickAscForMyNBO('FeesIfAny', e)} />
+                    <IconButton id="FeesIfAny" style={{ color: "Black", display: this.state.FeesIfAnyTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="FeesIfAny" onClick={(e) => this._onSortClickDescForMyNBO('FeesIfAny', e)} />
+                  </div></th>
+                <th style={{ padding: "5px 10px", }}>
+                  <div style={{ display: "flex" }}>Compliance Cleared
+                    <IconButton id="ComplianceCleared" style={{ color: "Black", display: this.state.ComplianceClearedTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="ComplianceCleared" onClick={(e) => this._onSortClickAscForMyNBO('ComplianceCleared', e)} />
+                    <IconButton id="ComplianceCleared" style={{ color: "Black", display: this.state.ComplianceClearedTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="ComplianceCleared" onClick={(e) => this._onSortClickDescForMyNBO('ComplianceCleared', e)} />
+                  </div></th>
 
               </tr>
               {this.state.paginatedItems.map((items, key) => {
                 return (
                   <tr style={{ borderBottom: "1px solid #f4f4f4" }}>
-                    <td style={{ padding: "5px 10px", }}><IconButton iconProps={EditIcon} title="Edit" ariaLabel="Delete" onClick={() => this.onEditClick(items)} disabled={items.Author.EMail == this.currentUserEmail ? false : true} /></td>
+                    <td style={{ padding: "5px 10px", }}><IconButton iconProps={EditIcon} title="Edit" ariaLabel="Delete" onClick={() => this.onEditClick(items)} disabled={items.Author.EMail != null && items.Author.EMail == this.currentUserEmail ? false : true} /></td>
                     {/* <td style={{ padding: "5px 10px", }}><IconButton iconProps={DeleteIcon} title="Delete" ariaLabel="Delete" onClick={() => this.onDeleteClick(items)} disabled={items.Author.EMail == this.currentUserEmail ? false : true} /></td> */}
                     <td style={{ padding: "5px 10px", }}><IconButton
                       iconProps={ShowDocuments} onClick={() => this.openCCSPopUp(items)}
                       text="View Documents"
-                      disabled={items.Author.EMail == this.currentUserEmail ? false : true} /></td>
+                      disabled={items.Author.EMail != null && items.Author.EMail == this.currentUserEmail ? false : true} /></td>
                     <td style={{ padding: "5px 10px" }}> {items.OpportunityType}  </td>
                     <td style={{ padding: "5px 10px" }}> {items.Source.Title}  </td>
                     <td style={{ padding: "5px 10px" }}>{items.Industry.Title}  </td>
                     <td style={{ padding: "5px 10px" }}> {items.Title} </td>
-                    <td style={{ padding: "5px 10px", }}>{items.Author.EMail == this.currentUserEmail ? items.ClassOfInsurance.Title : " "}  </td>
-                    <td style={{ padding: "5px 10px" }}>{items.Author.EMail == this.currentUserEmail ? moment(items.EstimatedStartDate).format("DD/MM/YYYY") : " "} </td>
-                    <td style={{ padding: "5px 10px" }}>{items.Author.EMail == this.currentUserEmail ? items.Comments : " "} </td>
-                    <td style={{ padding: "5px 10px", }}>{items.Author.EMail == this.currentUserEmail ? Number(items.EstimatedPremium).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') : " "} </td>
-                    <td style={{ padding: "5px 10px" }}>{items.Author.EMail == this.currentUserEmail ? items.BrokeragePercentage + " %" : " "} </td>
-                    <td style={{ padding: "5px 10px" }}>{items.Author.EMail == this.currentUserEmail ? Number(items.EstimatedBrokerage).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') : " "} </td>
-                    <td style={{ padding: "5px 10px" }}>{items.Author.EMail == this.currentUserEmail ? items.NBOStage.Title : " "} </td>
-                    <td style={{ padding: "5px 10px" }}>{items.Author.EMail == this.currentUserEmail ? Number(items.WeightedBrokerage).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') : " "} </td>
-                    <td style={{ padding: "5px 10px" }}>{items.Author.EMail == this.currentUserEmail ? Number(items.FeesIfAny).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') : " "} </td>
-                    <td style={{ padding: "5px 10px", }}>{items.Author.EMail == this.currentUserEmail ? items.ComplianceCleared : " "} </td>
+                    <td style={{ padding: "5px 10px", }}>{items.Author.EMail != null && items.Author.EMail == this.currentUserEmail ? items.ClassOfInsurance.Title : " "}  </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Author.EMail != null && items.Author.EMail == this.currentUserEmail ? moment(items.EstimatedStartDate).format("DD/MM/YYYY") : " "} </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Author.EMail != null && items.Author.EMail == this.currentUserEmail ? items.Comments : " "} </td>
+                    <td style={{ padding: "5px 10px", }}>{items.Author.EMail != null && items.Author.EMail == this.currentUserEmail ? Number(items.EstimatedPremium).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') : " "} </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Author.EMail != null && items.Author.EMail != null && items.Author.EMail == this.currentUserEmail ? items.BrokeragePercentage + " %" : " "} </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Author.EMail != null && items.Author.EMail == this.currentUserEmail ? Number(items.EstimatedBrokerage).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') : " "} </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Author.EMail != null && items.Author.EMail == this.currentUserEmail ? items.NBOStage.Title : " "} </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Author.EMail != null && items.Author.EMail == this.currentUserEmail ? Number(items.WeightedBrokerage).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') : " "} </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Author.EMail != null && items.Author.EMail == this.currentUserEmail ? Number(items.FeesIfAny).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,') : " "} </td>
+                    <td style={{ padding: "5px 10px", }}>{items.Author.EMail != null && items.Author.EMail == this.currentUserEmail ? items.ComplianceCleared : " "} </td>
                   </tr>
                 );
               })}
             </table>
-            <div style={{ display: this.state.docRepositoryItems.length >= this.pageSize ? "" : "none" }}>
+            <div className={styles.NoDataFound} style={{ display: this.state.divForNoDataFound }}> No Record Found</div>
+            <div style={{ display: this.state.divForShowingPagination }}>
               <Pagination
                 currentPage={0}
                 totalPages={(this.sortedArray.length / this.pageSize) - 1}
                 onChange={(page) => this._getPage(page)}
-                limiter={10}
                 limiterIcon={"Emoji12"} // Optional
               />
             </div>
@@ -1796,22 +6195,73 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
               <tr style={{ background: "#f4f4f4" }}>
                 <th style={{ padding: "5px 10px", }}>Edit</th>
                 <th style={{ padding: "5px 10px", }}>View Documents</th>
-                <th style={{ padding: "5px 10px" }}>Opportunity Type</th>
-                <th style={{ padding: "5px 10px" }}>Source</th>
-                <th style={{ padding: "5px 10px" }}>Industry</th>
-                <th style={{ padding: "5px 10px" }}>Client Name</th>
-                <th style={{ padding: "5px 10px", }}>Class of Insurance</th>
-                <th style={{ padding: "5px 10px", }}>Est Start Date</th>
-                <th style={{ padding: "5px 10px", }}>Comments</th>
-                <th style={{ padding: "5px 10px", }}>Estimated Premium</th>
-                <th style={{ padding: "5px 10px" }}>Brokerage %</th>
-                <th style={{ padding: "5px 10px" }}>Estimated Brokerage</th>
-                <th style={{ padding: "5px 10px" }}>NBO Stage</th>
-                <th style={{ padding: "5px 10px", }}>Weighted Brokerage</th>
-                <th style={{ padding: "5px 10px", }}>Fees If Any</th>
-                <th style={{ padding: "5px 10px", }}>Compliance Cleared</th>
-                <th style={{ padding: "5px 10px", }}>Department</th>
-                <th style={{ padding: "5px 10px", }}>Created By</th>
+                <th style={{ padding: "5px 10px" }}> <div style={{ display: "flex" }}>
+                  Opportunity Type
+                  <IconButton id="OpportunityType" style={{ color: "Black", display: this.state.sortOppurtunityTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="OpportunityType" onClick={(e) => this._onSortClickAscForSameDept('OpportunityType', e)} />
+                  <IconButton id="OpportunityType" style={{ color: "Black", display: this.state.sortOppurtunityTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="OpportunityType" onClick={(e) => this._onSortClickDescForSameDept('OpportunityType', e)} />
+
+                </div></th>
+                <th style={{ padding: "5px 10px" }}>  <div style={{ display: "flex" }}>Source
+                  <IconButton id="Source" style={{ color: "Black", display: this.state.SourceTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Source" onClick={(e) => this._onSortClickAscForSameDept('Source', e)} />
+                  <IconButton id="Source" style={{ color: "Black", display: this.state.SourceTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Source" onClick={(e) => this._onSortClickDescForSameDept('Source', e)} />
+
+                </div></th>
+                <th style={{ padding: "5px 10px" }}><div style={{ display: "flex" }}> Industry
+                  <IconButton id="Industry" style={{ color: "Black", display: this.state.IndustryTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Industry" onClick={(e) => this._onSortClickAscForSameDept('Industry', e)} />
+                  <IconButton id="Industry" style={{ color: "Black", display: this.state.IndustryTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Industry" onClick={(e) => this._onSortClickDescForSameDept('Industry', e)} />
+                </div></th>
+                <th style={{ padding: "5px 10px" }}> <div style={{ display: "flex" }}>Client Name
+                  <IconButton id="ClientName" style={{ color: "Black", display: this.state.ClientNameTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Title" onClick={(e) => this._onSortClickAscForSameDept('Title', e)} />
+                  <IconButton id="ClientName" style={{ color: "Black", display: this.state.ClientNameTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Title" onClick={(e) => this._onSortClickDescForSameDept('Title', e)} />
+                </div> </th>
+                <th style={{ padding: "5px 10px", }}><div style={{ display: "flex" }}>Class of Insurance
+                  <IconButton id="ClassOfInsurance" style={{ color: "Black", display: this.state.ClassOfInsuranceTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="ClassOfInsurance" onClick={(e) => this._onSortClickAscForSameDept('ClassOfInsurance', e)} />
+                  <IconButton id="ClassOfInsurance" style={{ color: "Black", display: this.state.ClassOfInsuranceTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="ClassOfInsurance" onClick={(e) => this._onSortClickDescForSameDept('ClassOfInsurance', e)} />
+                </div></th>
+                <th style={{ padding: "5px 10px", }}> <div style={{ display: "flex" }}>Est Start Date
+                  <IconButton id="EstimatedStartDate" style={{ color: "Black", display: this.state.EstStartDateTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="EstimatedStartDate" onClick={(e) => this._onSortClickAscForSameDept('EstimatedStartDate', e)} />
+                  <IconButton id="EstimatedStartDate" style={{ color: "Black", display: this.state.EstStartDateTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="EstimatedStartDate" onClick={(e) => this._onSortClickDescForSameDept('EstimatedStartDate', e)} />
+                </div></th>
+                <th style={{ padding: "5px 10px", }}> <div style={{ display: "flex" }}>Comments
+                  <IconButton id="Comments" style={{ color: "Black", display: this.state.CommentsTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Comments" onClick={(e) => this._onSortClickAscForSameDept('Comments', e)} />
+                  <IconButton id="Comments" style={{ color: "Black", display: this.state.CommentsTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Comments" onClick={(e) => this._onSortClickDescForSameDept('Comments', e)} />
+                </div></th>
+                <th style={{ padding: "5px 10px", }}><div style={{ display: "flex" }}>Estimated Premium
+                  <IconButton id="EstimatedPremium" style={{ color: "Black", display: this.state.EstimatedPremiumTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="EstimatedPremium" onClick={(e) => this._onSortClickAscForSameDept('EstimatedPremium', e)} />
+                  <IconButton id="EstimatedPremium" style={{ color: "Black", display: this.state.EstimatedPremiumTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="EstimatedPremium" onClick={(e) => this._onSortClickDescForSameDept('EstimatedPremium', e)} />
+                </div></th>
+                <th style={{ padding: "5px 10px" }}><div style={{ display: "flex" }}>Brokerage %
+                  <IconButton id="Brokerage" style={{ color: "Black", display: this.state.BrokerageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="BrokeragePercentage" onClick={(e) => this._onSortClickAscForSameDept('BrokeragePercentage', e)} />
+                  <IconButton id="Brokerage" style={{ color: "Black", display: this.state.BrokerageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="BrokeragePercentage" onClick={(e) => this._onSortClickDescForSameDept('BrokeragePercentage', e)} />
+                </div></th>
+                <th style={{ padding: "5px 10px" }}><div style={{ display: "flex" }}>Estimated Brokerage
+                  <IconButton id="EstimatedBrokerage" style={{ color: "Black", display: this.state.EstimatedBrokerageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="EstimatedBrokerage" onClick={(e) => this._onSortClickAscForSameDept('EstimatedBrokerage', e)} />
+                  <IconButton id="EstimatedBrokerage" style={{ color: "Black", display: this.state.EstimatedBrokerageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="EstimatedBrokerage" onClick={(e) => this._onSortClickDescForSameDept('EstimatedBrokerage', e)} />
+                </div></th>
+                <th style={{ padding: "5px 10px" }}><div style={{ display: "flex" }}>NBO Stage
+                  <IconButton id="NBOStage" style={{ color: "Black", display: this.state.NBOStageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="NBOStage" onClick={(e) => this._onSortClickAscForSameDept('NBOStage', e)} />
+                  <IconButton id="NBOStage" style={{ color: "Black", display: this.state.NBOStageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="NBOStage" onClick={(e) => this._onSortClickDescForSameDept('NBOStage', e)} />
+                </div></th>
+                <th style={{ padding: "5px 10px", }}> <div style={{ display: "flex" }}>Weighted Brokerage
+                  <IconButton id="WeightedBrokerage" style={{ color: "Black", display: this.state.WeightedBrokerageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="WeightedBrokerage" onClick={(e) => this._onSortClickAscForSameDept('WeightedBrokerage', e)} />
+                  <IconButton id="WeightedBrokerage" style={{ color: "Black", display: this.state.WeightedBrokerageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="WeightedBrokerage" onClick={(e) => this._onSortClickDescForSameDept('WeightedBrokerage', e)} />
+                </div></th>
+                <th style={{ padding: "5px 10px", }}> <div style={{ display: "flex" }}>Fees If Any
+                  <IconButton id="FeesIfAny" style={{ color: "Black", display: this.state.FeesIfAnyTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="FeesIfAny" onClick={(e) => this._onSortClickAscForSameDept('FeesIfAny', e)} />
+                  <IconButton id="FeesIfAny" style={{ color: "Black", display: this.state.FeesIfAnyTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="FeesIfAny" onClick={(e) => this._onSortClickDescForSameDept('FeesIfAny', e)} />
+                </div></th>
+                <th style={{ padding: "5px 10px", }}><div style={{ display: "flex" }}>Compliance Cleared
+                  <IconButton id="ComplianceCleared" style={{ color: "Black", display: this.state.ComplianceClearedTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="ComplianceCleared" onClick={(e) => this._onSortClickAscForSameDept('ComplianceCleared', e)} />
+                  <IconButton id="ComplianceCleared" style={{ color: "Black", display: this.state.ComplianceClearedTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="ComplianceCleared" onClick={(e) => this._onSortClickDescForSameDept('ComplianceCleared', e)} />
+                </div></th>
+                <th style={{ padding: "5px 10px", }}> <div style={{ display: "flex" }}>Department
+                  <IconButton id="Department" style={{ color: "Black", display: this.state.DepartmentTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Department" onClick={(e) => this._onSortClickAscForSameDept('Department', e)} />
+                  <IconButton id="Department" style={{ color: "Black", display: this.state.DepartmentTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Department" onClick={(e) => this._onSortClickDescForSameDept('Department', e)} />
+                </div></th>
+                <th style={{ padding: "5px 10px", }}><div style={{ display: "flex" }}>Created By
+                  <IconButton id="CreatedBy" style={{ color: "Black", display: this.state.CreatedByTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Author" onClick={(e) => this._onSortClickAscForSameDept('Author', e)} />
+                  <IconButton id="CreatedBy" style={{ color: "Black", display: this.state.CreatedByTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Author" onClick={(e) => this._onSortClickDescForSameDept('Author', e)} />
+                </div></th>
 
               </tr>
               {this.state.paginatedItems.map((items, key) => {
@@ -1843,7 +6293,8 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
                 );
               })}
             </table>
-            <div style={{ display: this.state.docRepositoryItems.length >= this.pageSize ? "" : "none" }}>
+            <div className={styles.NoDataFound} style={{ display: this.state.divForNoDataFound }}> No Record Found</div>
+            <div style={{ display: this.state.divForShowingPagination }}>
               <Pagination
                 currentPage={0}
                 totalPages={(this.sortedArray.length / this.pageSize) - 1}
@@ -1927,22 +6378,85 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
                 <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Edit</th>
                 <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" ? " " : "none") }}>Delete</th>
                 <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>View Documents</th>
-                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Opportunity Type</th>
-                <th style={{ padding: "5px 10px" }}>Source</th>
-                <th style={{ padding: "5px 10px" }}>Industry</th>
-                <th style={{ padding: "5px 10px" }}>Client Name</th>
-                <th style={{ padding: "5px 10px", }}>Class of Insurance</th>
-                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Est Start Date</th>
-                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Comments</th>
-                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Estimated Premium</th>
-                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Brokerage %</th>
-                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Estimated Brokerage</th>
-                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>NBO stage</th>
-                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Weighted Brokerage</th>
-                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Fees If Any</th>
-                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}>Compliance Cleared</th>
-                <th style={{ padding: "5px 10px" }}>Department</th>
-                <th style={{ padding: "5px 10px", }}>Created By</th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}><div style={{ display: "flex" }}>
+                  Opportunity Type
+                  <IconButton id="OpportunityType" style={{ color: "Black", display: this.state.sortOppurtunityTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="OpportunityType" onClick={(e) => this._onSortClickAscForOtherDept('OpportunityType', e)} />
+                  <IconButton id="OpportunityType" style={{ color: "Black", display: this.state.sortOppurtunityTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="OpportunityType" onClick={(e) => this._onSortClickDescForOtherDept('OpportunityType', e)} />
+                </div>
+                </th>
+                <th style={{ padding: "5px 10px" }}><div style={{ display: "flex" }}>Source
+                  <IconButton id="Source" style={{ color: "Black", display: this.state.SourceTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Source" onClick={(e) => this._onSortClickAscForOtherDept('Source', e)} />
+                  <IconButton id="Source" style={{ color: "Black", display: this.state.SourceTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Source" onClick={(e) => this._onSortClickDescForOtherDept('Source', e)} />
+
+                </div>
+                </th>
+                <th style={{ padding: "5px 10px" }}><div style={{ display: "flex" }}> Industry
+                  <IconButton id="Industry" style={{ color: "Black", display: this.state.IndustryTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Industry" onClick={(e) => this._onSortClickAscForOtherDept('Industry', e)} />
+                  <IconButton id="Industry" style={{ color: "Black", display: this.state.IndustryTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Industry" onClick={(e) => this._onSortClickDescForOtherDept('Industry', e)} />
+                </div>
+                </th>
+                <th style={{ padding: "5px 10px" }}><div style={{ display: "flex" }}>Client Name
+                  <IconButton id="Title" style={{ color: "Black", display: this.state.ClientNameTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Title" onClick={(e) => this._onSortClickAscForOtherDept('Title', e)} />
+                  <IconButton id="Title" style={{ color: "Black", display: this.state.ClientNameTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Title" onClick={(e) => this._onSortClickDescForOtherDept('Title', e)} />
+                </div>
+                </th>
+                <th style={{ padding: "5px 10px", }}><div style={{ display: "flex" }}>Class of Insurance
+                  <IconButton id="ClassOfInsurance" style={{ color: "Black", display: this.state.ClassOfInsuranceTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="ClassOfInsurance" onClick={(e) => this._onSortClickAscForOtherDept('ClassOfInsurance', e)} />
+                  <IconButton id="ClassOfInsurance" style={{ color: "Black", display: this.state.ClassOfInsuranceTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="ClassOfInsurance" onClick={(e) => this._onSortClickDescForOtherDept('ClassOfInsurance', e)} />
+                </div>
+                </th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}><div style={{ display: "flex" }}>Est Start Date
+                  <IconButton id="EstimatedStartDate" style={{ color: "Black", display: this.state.EstStartDateTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="EstimatedStartDate" onClick={(e) => this._onSortClickAscForOtherDept('EstimatedStartDate', e)} />
+                  <IconButton id="EstimatedStartDate" style={{ color: "Black", display: this.state.EstStartDateTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="EstimatedStartDate" onClick={(e) => this._onSortClickDescForOtherDept('EstimatedStartDate', e)} />
+                </div>
+
+                </th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}> <div style={{ display: "flex" }}>Comments
+                  <IconButton id="Comments" style={{ color: "Black", display: this.state.CommentsTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Comments" onClick={(e) => this._onSortClickAscForOtherDept('Comments', e)} />
+                  <IconButton id="Comments" style={{ color: "Black", display: this.state.CommentsTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Comments" onClick={(e) => this._onSortClickDescForOtherDept('Comments', e)} />
+                </div>
+                </th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}><div style={{ display: "flex" }}>Estimated Premium
+                  <IconButton id="EstimatedPremium" style={{ color: "Black", display: this.state.EstimatedPremiumTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="EstimatedPremium" onClick={(e) => this._onSortClickAscForOtherDept('EstimatedPremium', e)} />
+                  <IconButton id="EstimatedPremium" style={{ color: "Black", display: this.state.EstimatedPremiumTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="EstimatedPremium" onClick={(e) => this._onSortClickDescForOtherDept('EstimatedPremium', e)} />
+                </div>
+                </th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}><div style={{ display: "flex" }}>Brokerage %
+                  <IconButton id="Brokerage" style={{ color: "Black", display: this.state.BrokerageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="BrokeragePercentage" onClick={(e) => this._onSortClickAscForOtherDept('BrokeragePercentage', e)} />
+                  <IconButton id="Brokerage" style={{ color: "Black", display: this.state.BrokerageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="BrokeragePercentage" onClick={(e) => this._onSortClickDescForOtherDept('BrokeragePercentage', e)} />
+                </div>
+                </th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}><div style={{ display: "flex" }}>Estimated Brokerage
+                  <IconButton id="EstimatedBrokerage" style={{ color: "Black", display: this.state.EstimatedBrokerageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="EstimatedBrokerage" onClick={(e) => this._onSortClickAscForOtherDept('EstimatedBrokerage', e)} />
+                  <IconButton id="EstimatedBrokerage" style={{ color: "Black", display: this.state.EstimatedBrokerageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="EstimatedBrokerage" onClick={(e) => this._onSortClickDescForOtherDept('EstimatedBrokerage', e)} />
+                </div>
+                </th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}><div style={{ display: "flex" }}>NBO Stage
+                  <IconButton id="NBOStage" style={{ color: "Black", display: this.state.NBOStageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="NBOStage" onClick={(e) => this._onSortClickAscForOtherDept('NBOStage', e)} />
+                  <IconButton id="NBOStage" style={{ color: "Black", display: this.state.NBOStageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="NBOStage" onClick={(e) => this._onSortClickDescForOtherDept('NBOStage', e)} />
+                </div>
+                </th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}><div style={{ display: "flex" }}>Weighted Brokerage
+                  <IconButton id="WeightedBrokerage" style={{ color: "Black", display: this.state.WeightedBrokerageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="WeightedBrokerage" onClick={(e) => this._onSortClickAscForOtherDept('WeightedBrokerage', e)} />
+                  <IconButton id="WeightedBrokerage" style={{ color: "Black", display: this.state.WeightedBrokerageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="WeightedBrokerage" onClick={(e) => this._onSortClickDescForOtherDept('WeightedBrokerage', e)} />
+                </div></th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}> <div style={{ display: "flex" }}>Fees If Any
+                  <IconButton id="FeesIfAny" style={{ color: "Black", display: this.state.FeesIfAnyTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="FeesIfAny" onClick={(e) => this._onSortClickAscForOtherDept('FeesIfAny', e)} />
+                  <IconButton id="FeesIfAny" style={{ color: "Black", display: this.state.FeesIfAnyTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="FeesIfAny" onClick={(e) => this._onSortClickDescForOtherDept('FeesIfAny', e)} />
+                </div>
+                </th>
+                <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}> <div style={{ display: "flex" }}>Compliance Cleared
+                  <IconButton id="ComplianceCleared" style={{ color: "Black", display: this.state.ComplianceClearedTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="ComplianceCleared" onClick={(e) => this._onSortClickAscForOtherDept('ComplianceCleared', e)} />
+                  <IconButton id="ComplianceCleared" style={{ color: "Black", display: this.state.ComplianceClearedTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="ComplianceCleared" onClick={(e) => this._onSortClickDescForOtherDept('ComplianceCleared', e)} />
+                </div></th>
+                <th style={{ padding: "5px 10px" }}><div style={{ display: "flex" }}>Department
+                  <IconButton id="Department" style={{ color: "Black", display: this.state.DepartmentTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Department" onClick={(e) => this._onSortClickAscForOtherDept('Department', e)} />
+                  <IconButton id="Department" style={{ color: "Black", display: this.state.DepartmentTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Department" onClick={(e) => this._onSortClickDescForOtherDept('Department', e)} />
+                </div></th>
+                <th style={{ padding: "5px 10px", }}><div style={{ display: "flex" }}>Created By
+                  <IconButton id="Author" style={{ color: "Black", display: this.state.CreatedByTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Author" onClick={(e) => this._onSortClickAscForOtherDept('Author', e)} />
+                  <IconButton id="Author" style={{ color: "Black", display: this.state.CreatedByTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Author" onClick={(e) => this._onSortClickDescForOtherDept('Author', e)} />
+                </div></th>
               </tr>
               {this.state.paginatedItems.map((items, key) => {
                 return (
@@ -1974,9 +6488,10 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
                 );
               })}
             </table>
-            <div style={{ display: this.state.docRepositoryItems.length >= this.pageSize ? "" : "none" }}>
+            <div className={styles.NoDataFound} style={{ display: this.state.divForNoDataFound }}> No Record Found</div>
+            <div style={{ display: this.state.divForShowingPagination }}>
               <Pagination
-                currentPage={1}
+                currentPage={0}
                 totalPages={(this.sortedArray.length / this.pageSize) - 1}
                 onChange={(page) => this._getPage(page)}
                 limiter={100}
@@ -2004,7 +6519,7 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
               {/* body */}
               <div style={{ padding: "17px 7px 11px 25px", border: "1px solid #25ddd0" }}>
                 <div style={{ marginLeft: "10px", marginRight: "10px", display: "flex" }}>
-                  <div style={{ marginRight: "16px", width: "80%" }}>
+                  <div style={{ marginRight: "16px", width: "87%" }}>
                     <TextField autoComplete="off" label="Prospect Legal Name " required={true} value={this.state.clientName} onChange={this.clientNameChange} ></TextField>
                     <div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px" }}>{this.validator.message("subContractor", this.state.clientName, "required")}{" "}</div>
                   </div>
@@ -2260,24 +6775,23 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
                 {/* <th style={{ padding: "5px 10px" }}>Doc Id</th> */}
                 <th style={{ padding: "5px 10px", }}>Edit</th>
                 <th style={{ padding: "5px 10px", }}>View Documents</th>
-                <th style={{ padding: "5px 10px" }}>Client Name</th>
+                <th style={{ padding: "5px 10px", }}>Opportunity Type</th>
                 <th style={{ padding: "5px 10px" }}>Source</th>
                 <th style={{ padding: "5px 10px" }}>Industry</th>
-                <th style={{ padding: "5px 10px" }}>Department</th>
-                <th style={{ padding: "5px 10px", }}>Comments</th>
+                <th style={{ padding: "5px 10px" }}>Client Name</th>
                 <th style={{ padding: "5px 10px", }}>Class of Insurance</th>
-                {/* <th style={{ padding: "5px 10px", }}>Currency</th> */}
+                <th style={{ padding: "5px 10px", }}>Est Start Date</th>
+                <th style={{ padding: "5px 10px", }}>Comments</th>
                 <th style={{ padding: "5px 10px", }}>Estimated Premium</th>
-                {/* <th style={{ padding: "5px 10px" }}>Brokerage %</th> */}
                 <th style={{ padding: "5px 10px" }}>Brokerage %</th>
                 <th style={{ padding: "5px 10px" }}>Estimated Brokerage</th>
-                <th style={{ padding: "5px 10px", }}>Est Start Date</th>
+                <th style={{ padding: "5px 10px", }}>NBO Stage</th>
+                <th style={{ padding: "5px 10px", }}>Weighted Brokerage</th>
                 <th style={{ padding: "5px 10px", }}>Fees If Any</th>
-
-                <th style={{ padding: "5px 10px", }}>NBO stage</th>
                 <th style={{ padding: "5px 10px", }}>Compliance Cleared</th>
-
+                <th style={{ padding: "5px 10px" }}>Department</th>
               </tr>
+
               {this.state.paginatedItems.map((items, key) => {
                 return (
                   <tr style={{ borderBottom: "1px solid #f4f4f4" }}>
@@ -2288,21 +6802,21 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
                       iconProps={ShowDocuments} onClick={() => this.openCCSPopUp(items)}
                       text="View Documents"
                     /></td>
-                    <td style={{ padding: "5px 10px" }}> {items.Title} </td>
+                    <td style={{ padding: "5px 10px" }}> {items.OpportunityType}  </td>
                     <td style={{ padding: "5px 10px" }}> {items.Source.Title}  </td>
                     <td style={{ padding: "5px 10px" }}>{items.Industry.Title}  </td>
-                    <td style={{ padding: "5px 10px" }}>{items.Department} </td>
-                    <td style={{ padding: "5px 10px" }}>{items.Comments} </td>
+                    <td style={{ padding: "5px 10px" }}> {items.Title} </td>
                     <td style={{ padding: "5px 10px", }}>{items.ClassOfInsurance.Title}  </td>
-                    <td style={{ padding: "5px 10px", }}>{items.EstimatedPremium} </td>
-                    <td style={{ padding: "5px 10px" }}>{items.BrokeragePercentage + " %"} </td>
-                    <td style={{ padding: "5px 10px" }}>{Number(items.EstimatedBrokerage).toFixed(2)} </td>
-                    {/* <td style={{ padding: "5px 10px" }}>{items.BrokerageAmount} </td> */}
                     <td style={{ padding: "5px 10px" }}>{moment(items.EstimatedStartDate).format("DD/MM/YYYY")} </td>
-                    <td style={{ padding: "5px 10px" }}>{items.FeesIfAny} </td>
-
+                    <td style={{ padding: "5px 10px" }}>{items.Comments} </td>
+                    <td style={{ padding: "5px 10px", }}>{Number(items.EstimatedPremium).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}</td>
+                    <td style={{ padding: "5px 10px" }}>{items.BrokeragePercentage + " %"} </td>
+                    <td style={{ padding: "5px 10px" }}>{Number(items.EstimatedBrokerage).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')} </td>
                     <td style={{ padding: "5px 10px" }}>{items.NBOStage.Title} </td>
+                    <td style={{ padding: "5px 10px" }}>{Number(items.WeightedBrokerage).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')} </td>
+                    <td style={{ padding: "5px 10px" }}>{Number(items.FeesIfAny).toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')} </td>
                     <td style={{ padding: "5px 10px", }}>{items.ComplianceCleared} </td>
+                    <td style={{ padding: "5px 10px" }}>{items.Department} </td>
 
                   </tr>
                 );
@@ -2323,6 +6837,59 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
             <DefaultButton onClick={this._confirmNoCancel} text="No" />
           </DialogFooter>
         </Dialog>
+        <div>
+          <Modal
+            isOpen={this.state.hideFilterDialog}
+            onDismiss={this._closeModal}
+            containerClassName={contentStyles.container}
+          >
+
+            <div >
+              <p>
+                <div style={{ marginLeft: "8px", marginRight: "8%" }} ><Dropdown label='Select one column' placeholder='Select one column' selectedKey={this.state.selectedColumnKey} options={MyNBOFilterColumns} onChanged={this.filterColumnChange}></Dropdown>
+                  <div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px" }}>{this.validator.message("selectedColumnKey", this.state.selectedColumnKey, "required")}{" "}</div></div>
+                <div style={{ marginLeft: "8px", marginRight: "8%", marginBottom: "20px", display: this.state.filterConditionDiv }} >
+                  <Dropdown label='Select condition' placeholder='Select condition'
+                    selectedKey={this.state.filterConditionKey} options={this.state.filterConditions} onChanged={this.filterConditionColumnChange}></Dropdown>
+                  <div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px", marginTop: "5px" }}>{this.validator.message("filterCondition", this.state.filterCondition, "required")}{" "}</div></div>
+                <div style={{ width: "90%", marginLeft: "8px", display: this.state.textFiledForFilter }}><TextField title='Enter Value' placeholder='Enter Value' value={this.state.filterValue} onChange={this.filterValueChange}></TextField></div>
+                <div style={{ width: "88%", marginLeft: "10px", marginRight: "10px", display: this.state.dateForFilter }}>
+                  <DatePicker label="From date"
+                    value={this.state.estimatedFromStartDate}
+                    //  hidden={this.state.hideDueDate}
+                    onSelectDate={this._estimateFromDateChange}
+                    // minDate={this.state.dueDateForBindingApprovalLifeCycle}
+                    placeholder="Select a date..."
+                    ariaLabel="Select a date"
+                  />
+                  <DatePicker label="To date"
+                    value={this.state.estimatedToStartDate}
+                    //  hidden={this.state.hideDueDate}
+                    onSelectDate={this._estimateToDateChange}
+                    minDate={this.state.estimatedFromStartDate}
+                    placeholder="Select a date..."
+                    ariaLabel="Select a date"
+                  />
+                  <div style={{ color: "#dc3545", marginLeft: "10px", marginRight: "10px" }}>{this.validator.message("estimatedStartDate", this.state.estimatedStartDate, "required")}{" "}</div>
+                </div>
+                {/* <SearchBox placeholder="Type application name" className={styles['ms-SearchBox']} onSearch={newValue => console.log('value is ' + newValue)} onChange={this._onFilterForModal} /> */}
+                <div style={{
+                  float: "right",
+                  marginTop: "15%",
+                  marginBottom: "8%",
+                  marginRight: "5%"
+                }}>
+                  <PrimaryButton text="Filter" onClick={this._onFilterButtonSubmit} style={{ backgroundColor: "#008f85", color: "White" }} />
+                  <DefaultButton text="Cancel" onClick={this._filterPanelCloseButton} style={{ marginLeft: "8px" }} />
+                </div>
+              </p>
+            </div>
+
+
+          </Modal>
+        </div >
+
+
       </div >
 
     );
