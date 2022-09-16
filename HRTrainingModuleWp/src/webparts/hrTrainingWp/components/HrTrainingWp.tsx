@@ -401,7 +401,7 @@ export default class HrTrainingWp extends React.Component<IHrTrainingWpProps, IH
         this.setState({ statusMessage: { isShowMessage: true, message: this.props.messageBar, messageType: 4 }, });
         setTimeout(() => {
           window.location.replace(window.location.protocol + "//" + window.location.hostname + this.props.siteUrl);
-        }, 10000);
+        }, 20000);
       });
     }
 
