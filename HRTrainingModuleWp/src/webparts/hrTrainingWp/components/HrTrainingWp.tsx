@@ -22,6 +22,7 @@ export interface IHrTrainingWpState {
   errorMsg: string;
   noItemsDiv: string;
   trainingTileName: any;
+  buttonHide: boolean;
 }
 //for msg bar
 export interface IMessage {
@@ -60,6 +61,8 @@ export default class HrTrainingWp extends React.Component<IHrTrainingWpProps, IH
       errorMsg: "none",
       noItemsDiv: "none",
       trainingTileName: [],
+      buttonHide: false
+
     };
     this.handleOnChange = this.handleOnChange.bind(this);
     this.addToHRList = this.addToHRList.bind(this);
@@ -82,21 +85,34 @@ export default class HrTrainingWp extends React.Component<IHrTrainingWpProps, IH
     let oneArray = [];
     let hrTrainingNameDuplicates = [];
     //this.checkingPreviouslySelected();
-    await sp.web.getList(this.props.siteUrl + "/Lists/HRDuplicates").items.filter("User eq '" + this.currentUserEmail + "' ").get().then(async HRDuplicates => {
-      console.log("HRDuplicates", HRDuplicates);
-      if (HRDuplicates.length == 0 || HRDuplicates[0].Title != "Pending") {
-        this.currentlyRun = "No";
-        //alert("No Duplicates")
-        await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.hrTrainingTitles).items.get().then(async hrTrainingListItems => {
-          // ResourceId: { results: this.internalResourceID, }
-          console.log("hrTrainingListItems", hrTrainingListItems);
-          await sp.web.getList(this.props.siteUrl + "/" + this.props.TrainingModuleLibrary).items.filter("Title eq '" + this.currentUserEmail + "'").get().then(async folder => {
-            console.log("folder", folder);
-            for (let i = 0; i < hrTrainingListItems.length; i++) {
-              if (folder.length != 0) {
-                await sp.web.getList(this.props.siteUrl + "/" + this.props.TrainingModuleLibrary).items.filter("TrainingTitle eq '" + hrTrainingListItems[i].Title + "'  and (CurrentUser eq '" + this.currentUserEmail + "')").get().then(checkingPreviouslySelected => {
-                  console.log("PreviouslySelected", checkingPreviouslySelected);
-                  if (checkingPreviouslySelected.length == 0) {
+    await sp.web.getList(this.props.siteUrl + "/Lists/HRDuplicates").items.filter("User eq '" + this.currentUserEmail + "' ").get()
+      .then(async HRDuplicates => {
+        console.log("HRDuplicates", HRDuplicates);
+        if (HRDuplicates.length == 0 || HRDuplicates[0].Title != "Pending") {
+          this.currentlyRun = "No";
+          //alert("No Duplicates")
+          await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.hrTrainingTitles).items.get().then(async hrTrainingListItems => {
+            // ResourceId: { results: this.internalResourceID, }
+            console.log("hrTrainingListItems", hrTrainingListItems);
+            await sp.web.getList(this.props.siteUrl + "/" + this.props.TrainingModuleLibrary).items.filter("Title eq '" + this.currentUserEmail + "'").get()
+              .then(async folder => {
+                console.log("folder", folder);
+                for (let i = 0; i < hrTrainingListItems.length; i++) {
+                  if (folder.length != 0) {
+                    await sp.web.getList(this.props.siteUrl + "/" + this.props.TrainingModuleLibrary).items.filter("TrainingTitle eq '" + hrTrainingListItems[i].Title + "'  and (CurrentUser eq '" + this.currentUserEmail + "')").get()
+                      .then(checkingPreviouslySelected => {
+                        console.log("PreviouslySelected", checkingPreviouslySelected);
+                        if (checkingPreviouslySelected.length == 0) {
+                          items.push(
+                            { id: hrTrainingListItems[i].ID, value: hrTrainingListItems[i].Title, description: hrTrainingListItems[i].TrainingDescription, isChecked: false },
+                          );
+                          this.setState({
+                            hrTrainingListItems: items, temArray: oneArray
+                          });
+                        }
+                      });
+                  }
+                  else {
                     items.push(
                       { id: hrTrainingListItems[i].ID, value: hrTrainingListItems[i].Title, description: hrTrainingListItems[i].TrainingDescription, isChecked: false },
                     );
@@ -104,136 +120,115 @@ export default class HrTrainingWp extends React.Component<IHrTrainingWpProps, IH
                       hrTrainingListItems: items, temArray: oneArray
                     });
                   }
-                });
-              }
-              else {
-                items.push(
-                  { id: hrTrainingListItems[i].ID, value: hrTrainingListItems[i].Title, description: hrTrainingListItems[i].TrainingDescription, isChecked: false },
-                );
-                this.setState({
-                  hrTrainingListItems: items, temArray: oneArray
-                });
-              }
-            }
-
+                }
+              });
           });
-        });
-        if (this.state.hrTrainingListItems.length == 0) {
-          this.setState({
-            noItemsDiv: " ",
-          });
+          if (this.state.hrTrainingListItems.length == 0) {
+            this.setState({
+              noItemsDiv: " ",
+            });
+          }
         }
-      }
-      else if (HRDuplicates[0].Title == "Pending") {
-
-        // this.currentlyRun = "Pending";     
-        //Button vissible Codes
-        let splitted = HRDuplicates[0].TrainingTitle.split(',');
-        hrTrainingNameDuplicates = HRDuplicates[0].TrainingTitle.split(',');
-        console.log("SplittedNames", hrTrainingNameDuplicates);
-        this.setState({
-          trainingTileName: hrTrainingNameDuplicates,
-        });
-
-        await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.hrTrainingTitles).items.get().then(async hrTrainingListItems => {
-          // ResourceId: { results: this.internalResourceID, }
-          console.log("hrTrainingListItems", hrTrainingListItems);
-          // hrTrainingListItems = hrTrainingListItems.filter((ele, index) => {
-          //   return hrTrainingNameDuplicates.indexOf(ele) == -1;
-          // });
-          hrTrainingListItems = hrTrainingListItems.filter(val => {
-            return !hrTrainingNameDuplicates.some((val2) => {
-              //  console.log({valueID:val.id+":"+val2.id});
-              return val.Title === val2
-            })
-          });
-          console.log("withOut", hrTrainingListItems);
-          await sp.web.getList(this.props.siteUrl + "/" + this.props.TrainingModuleLibrary).items.filter("Title eq '" + this.currentUserEmail + "'").get().then(async folder => {
-            console.log("folder", folder);
-            for (let i = 0; i < hrTrainingListItems.length; i++) {
-              if (folder.length != 0) {
-                await sp.web.getList(this.props.siteUrl + "/" + this.props.TrainingModuleLibrary).items.filter("TrainingTitle eq '" + hrTrainingListItems[i].Title + "'  and (CurrentUser eq '" + this.currentUserEmail + "')").get().then(checkingPreviouslySelected => {
-                  console.log("PreviouslySelected", checkingPreviouslySelected);
-                  if (checkingPreviouslySelected.length == 0) {
-                    items.push(
-                      { id: hrTrainingListItems[i].ID, value: hrTrainingListItems[i].Title, description: hrTrainingListItems[i].TrainingDescription, isChecked: false },
-                    );
-                    this.setState({
-                      hrTrainingListItems: items, temArray: oneArray
-                    });
-                  }
-                });
-              }
-              else {
-                items.push(
-                  { id: hrTrainingListItems[i].ID, value: hrTrainingListItems[i].Title, description: hrTrainingListItems[i].TrainingDescription, isChecked: false },
-                );
-                this.setState({
-                  hrTrainingListItems: items, temArray: oneArray
-                });
-              }
-            }
-
-          });
-
-          // for (let i = 0; i < hrTrainingListItems.length; i++) {
-          //   items.push({ id: hrTrainingListItems[i].ID, value: hrTrainingListItems[i].Title, description: hrTrainingListItems[i].TrainingDescription, isChecked: false });
-          // }
-          // this.setState({
-          //   hrTrainingListItems: items, temArray: oneArray
-          // });
-
-        });
-
-
-        if (this.state.hrTrainingListItems.length == 0) {
+        else if (HRDuplicates[0].Title == "Pending") {
+          let splitted = HRDuplicates[0].TrainingTitle.split(',');
+          hrTrainingNameDuplicates = HRDuplicates[0].TrainingTitle.split(',');
+          console.log("SplittedNames", hrTrainingNameDuplicates);
           this.setState({
-            noItemsDiv: " ",
+            trainingTileName: hrTrainingNameDuplicates,
           });
+          await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.hrTrainingTitles).items.get().then(async hrTrainingListItems => {
+            console.log("hrTrainingListItems", hrTrainingListItems);
+            hrTrainingListItems = hrTrainingListItems.filter(val => {
+              return !hrTrainingNameDuplicates.some((val2) => {
+                //  console.log({valueID:val.id+":"+val2.id});
+                return val.Title === val2
+              })
+            });
+            console.log("withOut", hrTrainingListItems);
+            await sp.web.getList(this.props.siteUrl + "/" + this.props.TrainingModuleLibrary).items.filter("Title eq '" + this.currentUserEmail + "'").get().then(async folder => {
+              console.log("folder", folder);
+              for (let i = 0; i < hrTrainingListItems.length; i++) {
+                if (folder.length != 0) {
+                  await sp.web.getList(this.props.siteUrl + "/" + this.props.TrainingModuleLibrary).items.filter("TrainingTitle eq '" + hrTrainingListItems[i].Title + "'  and (CurrentUser eq '" + this.currentUserEmail + "')").get().then(checkingPreviouslySelected => {
+                    console.log("PreviouslySelected", checkingPreviouslySelected);
+                    if (checkingPreviouslySelected.length == 0) {
+                      items.push(
+                        { id: hrTrainingListItems[i].ID, value: hrTrainingListItems[i].Title, description: hrTrainingListItems[i].TrainingDescription, isChecked: false },
+                      );
+                      this.setState({
+                        hrTrainingListItems: items, temArray: oneArray
+                      });
+                    }
+                  });
+                }
+                else {
+                  items.push(
+                    { id: hrTrainingListItems[i].ID, value: hrTrainingListItems[i].Title, description: hrTrainingListItems[i].TrainingDescription, isChecked: false },
+                  );
+                  this.setState({
+                    hrTrainingListItems: items, temArray: oneArray
+                  });
+                }
+              }
+
+            });
+
+            // for (let i = 0; i < hrTrainingListItems.length; i++) {
+            //   items.push({ id: hrTrainingListItems[i].ID, value: hrTrainingListItems[i].Title, description: hrTrainingListItems[i].TrainingDescription, isChecked: false });
+            // }
+            // this.setState({
+            //   hrTrainingListItems: items, temArray: oneArray
+            // });
+
+          });
+
+
+          if (this.state.hrTrainingListItems.length == 0) {
+            this.setState({
+              noItemsDiv: " ",
+            });
+          }
+
+
+          // await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.hrTrainingTitles).items.get().then(async hrTrainingListItems => {
+          //   // ResourceId: { results: this.internalResourceID, }
+          //   console.log("hrTrainingListItems", hrTrainingListItems);
+          //   await sp.web.getList(this.props.siteUrl + "/" + this.props.TrainingModuleLibrary).items.filter("Title eq '" + this.currentUserEmail + "'").get().then(async folder => {
+          //     console.log("folder", folder);
+          //     for (let i = 0; i < hrTrainingListItems.length; i++) {
+
+          //       if (folder.length != 0) {
+          //         await sp.web.getList(this.props.siteUrl + "/" + this.props.TrainingModuleLibrary).items.filter("TrainingTitle eq '" + hrTrainingListItems[i].Title + "'  and (CurrentUser eq '" + this.currentUserEmail + "')").get().then(checkingPreviouslySelected => {
+          //           console.log("PreviouslySelected", checkingPreviouslySelected);
+          //           if (checkingPreviouslySelected.length == 0) {
+          //             items.push(
+          //               { id: hrTrainingListItems[i].ID, value: hrTrainingListItems[i].Title, description: hrTrainingListItems[i].TrainingDescription, isChecked: false },
+          //             );
+          //             this.setState({
+          //               hrTrainingListItems: items, temArray: oneArray
+          //             });
+          //           }
+          //         });
+          //       }
+          //       else {
+          //         items.push(
+          //           { id: hrTrainingListItems[i].ID, value: hrTrainingListItems[i].Title, description: hrTrainingListItems[i].TrainingDescription, isChecked: false },
+          //         );
+          //         this.setState({
+          //           hrTrainingListItems: items, temArray: oneArray
+          //         });
+          //       }
+          //     }
+
+          //   });
+          // });
+
         }
-
-
-        // await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.hrTrainingTitles).items.get().then(async hrTrainingListItems => {
-        //   // ResourceId: { results: this.internalResourceID, }
-        //   console.log("hrTrainingListItems", hrTrainingListItems);
-        //   await sp.web.getList(this.props.siteUrl + "/" + this.props.TrainingModuleLibrary).items.filter("Title eq '" + this.currentUserEmail + "'").get().then(async folder => {
-        //     console.log("folder", folder);
-        //     for (let i = 0; i < hrTrainingListItems.length; i++) {
-
-        //       if (folder.length != 0) {
-        //         await sp.web.getList(this.props.siteUrl + "/" + this.props.TrainingModuleLibrary).items.filter("TrainingTitle eq '" + hrTrainingListItems[i].Title + "'  and (CurrentUser eq '" + this.currentUserEmail + "')").get().then(checkingPreviouslySelected => {
-        //           console.log("PreviouslySelected", checkingPreviouslySelected);
-        //           if (checkingPreviouslySelected.length == 0) {
-        //             items.push(
-        //               { id: hrTrainingListItems[i].ID, value: hrTrainingListItems[i].Title, description: hrTrainingListItems[i].TrainingDescription, isChecked: false },
-        //             );
-        //             this.setState({
-        //               hrTrainingListItems: items, temArray: oneArray
-        //             });
-        //           }
-        //         });
-        //       }
-        //       else {
-        //         items.push(
-        //           { id: hrTrainingListItems[i].ID, value: hrTrainingListItems[i].Title, description: hrTrainingListItems[i].TrainingDescription, isChecked: false },
-        //         );
-        //         this.setState({
-        //           hrTrainingListItems: items, temArray: oneArray
-        //         });
-        //       }
-        //     }
-
-        //   });
-        // });
-
-      }
-    });
-
+      });
   }
   private checkingPreviouslySelected() {
     sp.web.getList(this.props.siteUrl + "/List/HRDuplicates").items.filter("User eq '" + this.currentUserEmail + "'").get().then(checkingPreviouslySelected => {
       console.log("HRDuplicates", checkingPreviouslySelected);
-
     });
 
   }
@@ -259,14 +254,6 @@ export default class HrTrainingWp extends React.Component<IHrTrainingWpProps, IH
       }
     });
   }
-  //public handleOnChange(event) {
-  // let tempTrainingItems = [];
-  // let trainingTitleId = position;
-  // tempTrainingItems.push(trainingTitleId);
-  // console.log("id selected", trainingTitleId)
-  // this.appendIds(trainingTitleId);
-
-  //}
   public async appendIds(trainingTitleId) {
     //alert(trainingTitleId)
     let oneArray = [];
@@ -324,85 +311,119 @@ export default class HrTrainingWp extends React.Component<IHrTrainingWpProps, IH
   }
   public handleOnChange(ev, isChecked) {
     console.log(isChecked);
-    let fruites = this.state.hrTrainingListItems;
+    let modules = this.state.hrTrainingListItems;
     let tempTrainingItems = [];
     let trainingTitleId;
     if (isChecked) {
-      fruites.forEach(async fruite => {
-        if (fruite.value === ev.target.name) {
-          let trainingTitleId = fruite.id;
-          fruite.isChecked = ev.target.checked;
-          // const itemFromDoc: any[] = await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.hrTrainingTitles).items.select("Documents,VideoName").filter("ID eq '" + trainingTitleId + "'").get();
-          // console.log(itemFromDoc);
-          // // if (itemFromDoc[0].Documents == null && itemFromDoc[0].VideoName == null) {
-          //   confirm("Item have no Documents or videos.Please Uncheck the current item")
-
-          // } else {
-
+      modules.forEach(async selectedModule => {
+        if (selectedModule.value === ev.target.name) {
+          let trainingTitleId = selectedModule.id;
+          selectedModule.isChecked = ev.target.checked;
           tempTrainingItems.push(trainingTitleId);
-          this.state.hrTrainingItems.push(fruite.id);
-          this.state.trainingTileName.push(fruite.value);
-          //}
-
-          // this.appendIds(fruite.id);
+          this.state.hrTrainingItems.push(selectedModule.id);
+          this.state.trainingTileName.push(selectedModule.value);
         }
       });
-      //this.setState({ hrTrainingListItems: fruites, itemDiv: " " });
       console.log(this.accessedTrainingId);
       console.log("checkedItems", this.state.hrTrainingItems);
     }
     else {
-      fruites.forEach(fruite => {
-        if (fruite.value === ev.target.name) {
-          let newarray = this.state.hrTrainingItems.filter(element => element !== fruite.id);
-          let newarrayName = this.state.trainingTileName.filter(element => element !== fruite.value);
+      modules.forEach(selectedModule => {
+        if (selectedModule.value === ev.target.name) {
+          let newarray = this.state.hrTrainingItems.filter(element => element !== selectedModule.id);
+          let newarrayName = this.state.trainingTileName.filter(element => element !== selectedModule.value);
           console.log(newarray);
           this.setState({ hrTrainingItems: newarray, itemDiv: "none", trainingTileName: newarrayName });
           console.log("checkedItems", newarray);
         }
       });
-
     }
-
   }
-  public addToHRList = () => {
+  public addToHRList = async () => {
     console.log("AccessedID", this.accessedTrainingId);
     let names = (this.state.trainingTileName).toString();
-    if (this.state.hrTrainingItems.length == 0) {
+    if (this.state.hrTrainingItems.length == 0) { //if no module selected 
       this.setState({
         confirmDeleteDialog: false,
         errorMsg: "",
-
       });
-    } else {
-      sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.hrTrainingReports).items.add({
-        Title: this.state.currentUserDepartment,
-        UserId: this.state.currentUserId,
-        TrainingTitlesId: { results: this.state.hrTrainingItems },
-        LineManagerEmail: this.state.LineManagerEmail,
-      }).then(afterSave => {
-        sp.web.getList(this.props.siteUrl + "/Lists/HRDuplicates").items.filter("User eq '" + this.currentUserEmail + "'").get().then(HRDuplicates => {
-          console.log("HRDuplicates", HRDuplicates);
-          if (HRDuplicates.length > 0) {
-            sp.web.getList(this.props.siteUrl + "/Lists/HRDuplicates").items.getById(HRDuplicates[0].ID).update({
-              Title: "Pending",
-              User: this.currentUserEmail,
-              TrainingTitle: names
+    }
+    else {
+      this.setState({ buttonHide: true });
+      for (let i = 0; i < this.state.hrTrainingItems.length; i++) {
+        await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.hrTrainingReports).items
+          .add({
+            Title: this.state.currentUserDepartment,
+            UserId: this.state.currentUserId,
+            TrainingTitlesId: { results: [this.state.hrTrainingItems[i]] },
+            LineManagerEmail: this.state.LineManagerEmail,
+          });
+      }
+      sp.web.getList(this.props.siteUrl + "/Lists/HRTrainingItems").items
+        .add({
+          Title: this.state.currentUserDepartment,
+          UserId: this.state.currentUserId,
+          TrainingTitlesId: { results: this.state.hrTrainingItems },
+          LineManagerEmail: this.state.LineManagerEmail,
+        })
+        .then(afterSave => {
+          sp.web.getList(this.props.siteUrl + "/Lists/HRDuplicates").items.filter("User eq '" + this.currentUserEmail + "'").get()
+            .then(HRDuplicates => {
+              console.log("HRDuplicates", HRDuplicates);
+              if (HRDuplicates.length > 0) {
+                sp.web.getList(this.props.siteUrl + "/Lists/HRDuplicates").items.getById(HRDuplicates[0].ID).update({
+                  Title: "Pending",
+                  User: this.currentUserEmail,
+                  TrainingTitle: names
+                });
+              }
+              else {
+                sp.web.getList(this.props.siteUrl + "/Lists/HRDuplicates").items.add({
+                  Title: "Pending",
+                  User: this.currentUserEmail,
+                  TrainingTitle: names,
+                });
+              }
+            })
+            .then(afterSave => {
+              this.setState({ statusMessage: { isShowMessage: true, message: this.props.messageBar, messageType: 4 }, });
+              setTimeout(() => {
+                window.location.replace(window.location.protocol + "//" + window.location.hostname + this.props.siteUrl);
+              }, 20000);
             });
-          } else {
-            sp.web.getList(this.props.siteUrl + "/Lists/HRDuplicates").items.add({
-              Title: "Pending",
-              User: this.currentUserEmail,
-              TrainingTitle: names,
-            });
-          }
         });
-
-        this.setState({ statusMessage: { isShowMessage: true, message: this.props.messageBar, messageType: 4 }, });
-        setTimeout(() => {
-          window.location.replace(window.location.protocol + "//" + window.location.hostname + this.props.siteUrl);
-        }, 20000);
-      });
+      //insertion as array in training reports title(old code)
+      // sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.hrTrainingReports).items
+      //   .add({
+      //     Title: this.state.currentUserDepartment,
+      //     UserId: this.state.currentUserId,
+      //     TrainingTitlesId: { results: this.state.hrTrainingItems },
+      //     LineManagerEmail: this.state.LineManagerEmail,
+      //   })
+      //   .then(afterSave => {
+      //     sp.web.getList(this.props.siteUrl + "/Lists/HRDuplicates").items.filter("User eq '" + this.currentUserEmail + "'").get()
+      //       .then(HRDuplicates => {
+      //         console.log("HRDuplicates", HRDuplicates);
+      //         if (HRDuplicates.length > 0) {
+      //           sp.web.getList(this.props.siteUrl + "/Lists/HRDuplicates").items.getById(HRDuplicates[0].ID).update({
+      //             Title: "Pending",
+      //             User: this.currentUserEmail,
+      //             TrainingTitle: names
+      //           });
+      //         }
+      //         else {
+      //           sp.web.getList(this.props.siteUrl + "/Lists/HRDuplicates").items.add({
+      //             Title: "Pending",
+      //             User: this.currentUserEmail,
+      //             TrainingTitle: names,
+      //           });
+      //         }
+      //       });
+      //     this.setState({ statusMessage: { isShowMessage: true, message: this.props.messageBar, messageType: 4 }, });
+      //     setTimeout(() => {
+      //       window.location.replace(window.location.protocol + "//" + window.location.hostname + this.props.siteUrl);
+      //     }, 20000);
+      //   });
     }
 
   }
@@ -446,34 +467,27 @@ export default class HrTrainingWp extends React.Component<IHrTrainingWpProps, IH
                           //id={tooltipId}
                           calloutProps={calloutProps}
                           styles={hostStyles}
-
                         >
                           <div className={styles.tooltip}>
                             <div className={styles.name} style={{ height: "75px" }}>
-
                               <Checkbox label={items.value} name={items.value} key={items.id} onChange={this.handleOnChange} style={{ color: "#498205" }} />
-
-
-
                               {/* <div dangerouslySetInnerHTML={{ __html: items.description }}></div> */}
                             </div>
                           </div>
                           <i style={{ cursor: "pointer" }}> <IconButton iconProps={contactSearch} title="View Details" ariaLabel="Delete" onClick={() => this.appendIds(items.id)} style={{ padding: "0px 0px 0px 129px", }} /></i>
                         </TooltipHost>
-                        {/* <i > <IconButton iconProps={contactSearch} title="View Details" ariaLabel="Delete" onClick={() => this.appendIds(items.id)} style={{ padding: "23px 0px 0px 10px", }} /></i> */}
                       </div>
-
-
                     </div>
                   </div>
-
                 );
               })}
             </div>
-            <div className={styles.buttonStyle}>
-              <PrimaryButton onClick={this.addToHRList} text='Submit' disabled={this.currentlyRun == "Pending" ? true : false}></PrimaryButton>
-              <PrimaryButton onClick={this.cancel} text='Cancel' style={{ marginLeft: "8px" }}></PrimaryButton>
-            </div>
+            {this.state.buttonHide === false &&
+              <div className={styles.buttonStyle}>
+                <PrimaryButton onClick={this.addToHRList} text='Submit' disabled={this.currentlyRun == "Pending" ? true : false}></PrimaryButton>
+                <PrimaryButton onClick={this.cancel} text='Cancel' style={{ marginLeft: "8px" }}></PrimaryButton>
+              </div>
+            }
             <Dialog
               hidden={this.state.confirmDeleteDialog}
               //dialogContentProps={this.dialogCancelContentProps}
@@ -481,7 +495,6 @@ export default class HrTrainingWp extends React.Component<IHrTrainingWpProps, IH
               modalProps={this.modalProps}
               styles={this.dialogStyles}
             >
-
               <div className={'ms-Dialog-content ' + styles.container}>
                 <div className={'ms-Dialog-content ' + styles.folder} style={{ display: this.state.itemDiv }}>
                   <h1>Module Contains</h1>
@@ -517,11 +530,6 @@ export default class HrTrainingWp extends React.Component<IHrTrainingWpProps, IH
                 <div><h2>{this.props.errorMessage}</h2></div>
               </div>
             </Dialog>
-
-
-
-
-
             {/* Show Message bar for Notification*/}
             {this.state.statusMessage.isShowMessage ?
               <MessageBar
@@ -530,9 +538,6 @@ export default class HrTrainingWp extends React.Component<IHrTrainingWpProps, IH
                 dismissButtonAriaLabel="Close"
               >{this.state.statusMessage.message}</MessageBar>
               : ''}
-
-
-
           </div>
           <div style={{ display: this.state.noItemsDiv, textAlign: "center", marginTop: "45px", fontSize: "17px" }}>{this.props.statementIfNoItems}</div>
         </div>
