@@ -17,27 +17,29 @@
     "@microsoft/sp-webpart-base": "1.12.1",
     "@pnp/spfx-controls-react": "3.7.2",
     "bootstrap": "^5.1.3",
+    "file-saver": "^2.0.5",
     "jquery": "^3.6.0",
     "moment": "^2.29.3",
     "office-ui-fabric-react": "7.156.0",
     "react": "16.9.0",
     "react-dom": "16.9.0",
+    "react-paginate": "^8.1.4",
     "react-toastify": "^8.2.0",
     "replace-string": "^4.0.0",
     "simple-react-validator": "^1.6.1",
     "sp-pnp-js": "^3.0.10",
-    "react-paginate": "^8.1.3"
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@microsoft/rush-stack-compiler-3.7": "0.2.3",
+    "@microsoft/sp-build-web": "1.12.1",
+    "@microsoft/sp-module-interfaces": "1.12.1",
+    "@microsoft/sp-tslint-rules": "1.12.1",
+    "@microsoft/sp-webpart-workbench": "1.12.1",
     "@types/react": "16.9.36",
     "@types/react-dom": "16.9.8",
-    "@microsoft/sp-build-web": "1.12.1",
-    "@microsoft/sp-tslint-rules": "1.12.1",
-    "@microsoft/sp-module-interfaces": "1.12.1",
-    "@microsoft/sp-webpart-workbench": "1.12.1",
-    "@microsoft/rush-stack-compiler-3.7": "0.2.3",
-    "gulp": "~4.0.2",
+    "@types/webpack-env": "1.13.1",
     "ajv": "~5.2.2",
-    "@types/webpack-env": "1.13.1"
+    "gulp": "^3.9.1"
   }
 }
