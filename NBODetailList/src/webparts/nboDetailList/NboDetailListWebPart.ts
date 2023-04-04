@@ -18,11 +18,8 @@ export interface INboDetailListWebPartProps {
 
 export default class NboDetailListWebPart extends BaseClientSideWebPart<INboDetailListProps> {
   protected onInit(): Promise<void> {
-
     return super.onInit().then(_ => {
-
       // other init code may be present
-
       sp.setup({
         spfxContext: this.context
       });
@@ -30,7 +27,6 @@ export default class NboDetailListWebPart extends BaseClientSideWebPart<INboDeta
   }
   public render(): void {
     try {
-
       $(".ControlZone").parent().parent().css("max-width", "100%");
     }
     catch (err) {
