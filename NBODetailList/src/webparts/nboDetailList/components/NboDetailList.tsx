@@ -349,7 +349,7 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
       estimatedFromStartDate: null,
       estimatedToStartDate: null,
       itemOffset: 0,
-      itemsPerPage: 10
+      itemsPerPage: 30
     };
     //this.Listdata = this.Listdata.bind(this);
 
@@ -2159,37 +2159,42 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
       console.log("Sorted Array items", this.sortedArray);
       let event = e.currentTarget.ariaLabel;
       let eventID = e.currentTarget.id;
-      let docProfileItems = [];
-      this.sortedArray = [];
-      console.log(event);
-      this.setState({
-        sameDepartmentItems: "Yes",
-        currentItemID: "",
-        paginatedItems: [],
-      });
-      let tempArray = [];
-      let selectItems = "ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType";
-      let expand = "Source,Industry,ClassOfInsurance,NBOStage,Author";
-      await this.SortItemAscMydepartments(selectItems, expand, sortBy).then(docItems => {
-        for (let sd = 0; sd < this.state.oppurtunityDept.length; sd++) {
-          for (let listItem = 0; listItem < docItems.length; listItem++) {
-            if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text) {
-              tempArray.push(docItems[listItem]);
+      if (sortBy === "Comments" || sortBy === "EstimatedBrokerage") {
+      }
+      else {
+        let docProfileItems = [];
+        this.sortedArray = [];
+        console.log(event);
+        this.setState({
+          sameDepartmentItems: "Yes",
+          currentItemID: "",
+          paginatedItems: [],
+        });
+        let tempArray = [];
+        let selectItems = "ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType";
+        let expand = "Source,Industry,ClassOfInsurance,NBOStage,Author";
+        await this.SortItemAscMydepartments(selectItems, expand, sortBy).then(docItems => {
+          for (let sd = 0; sd < this.state.oppurtunityDept.length; sd++) {
+            for (let listItem = 0; listItem < docItems.length; listItem++) {
+              if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text) {
+                tempArray.push(docItems[listItem]);
+              }
             }
           }
-        }
-        this.sortedArray = _.orderBy(tempArray, sortBy, ['asc']);
-        this.setState({
-          divForSame: "",
-          divForCurrentUser: "none",
-          divForOtherDepts: "none",
-          docRepositoryItems: this.sortedArray,
+          this.sortedArray = _.orderBy(tempArray, sortBy, ['asc']);
+          this.setState({
+            divForSame: "",
+            divForCurrentUser: "none",
+            divForOtherDepts: "none",
+            docRepositoryItems: this.sortedArray,
+          });
+          if (tempArray.length == 0) {
+            this.setState({ noItemErrorMsg: "" });
+          }
         });
-        if (tempArray.length == 0) {
-          this.setState({ noItemErrorMsg: "" });
-        }
-      });
-      console.log(event);
+        console.log(event);
+      }
+
       switch (this.sortedArray.length > 0) {
         case (event == "OpportunityType" || eventID == "OpportunityType"):
           this.setState({
@@ -2295,38 +2300,41 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
     if (this.state.divForNoDataFound == "none") {
       let event = e.currentTarget.ariaLabel;
       let eventID = e.currentTarget.id;
-      let docProfileItems = [];
-      this.sortedArray = [];
-      this.setState({
-        sameDepartmentItems: "Yes",
-        currentItemID: "",
-        paginatedItems: [],
-      });
-      let tempArray = [];
-      let selectItems = "ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType";
-      let expand = "Source,Industry,ClassOfInsurance,NBOStage,Author";
-      await this.SortItemDescMydepartments(selectItems, expand, sortBy).then(docItems => {
-        for (let sd = 0; sd < this.state.oppurtunityDept.length; sd++) {
-          for (let listItem = 0; listItem < docItems.length; listItem++) {
-            if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text) {
-              tempArray.push(docItems[listItem]);
+      if (sortBy === "Comments" || sortBy === "EstimatedBrokerage") {
+      }
+      else {
+        let docProfileItems = [];
+        this.sortedArray = [];
+        this.setState({
+          sameDepartmentItems: "Yes",
+          currentItemID: "",
+          paginatedItems: [],
+        });
+        let tempArray = [];
+        let selectItems = "ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType";
+        let expand = "Source,Industry,ClassOfInsurance,NBOStage,Author";
+        await this.SortItemDescMydepartments(selectItems, expand, sortBy).then(docItems => {
+          for (let sd = 0; sd < this.state.oppurtunityDept.length; sd++) {
+            for (let listItem = 0; listItem < docItems.length; listItem++) {
+              if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text) {
+                tempArray.push(docItems[listItem]);
+              }
             }
           }
-        }
-        this.sortedArray = _.orderBy(tempArray, sortBy, ['asc']);
-        if (tempArray.length == 0) {
-          this.setState({ noItemErrorMsg: "" });
-        }
-        this.setState({
-          divForSame: "",
-          divForCurrentUser: "none",
-          divForOtherDepts: "none",
-          docRepositoryItems: this.sortedArray,
+          this.sortedArray = _.orderBy(tempArray, sortBy, ['desc']);
+          if (tempArray.length == 0) {
+            this.setState({ noItemErrorMsg: "" });
+          }
+          this.setState({
+            divForSame: "",
+            divForCurrentUser: "none",
+            divForOtherDepts: "none",
+            docRepositoryItems: this.sortedArray,
+          });
+
         });
 
-      });
-
-
+      }
       switch (this.sortedArray.length > 0) {
         case (event == "OpportunityType" || eventID == "OpportunityType"):
           this.setState({
@@ -5495,12 +5503,6 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
             </table>
             <div className={styles.NoDataFound} style={{ display: this.state.divForNoDataFound }}> No Record Found</div>
             <div style={{ display: this.state.divForShowingPagination }}>
-              {/* <Pagination
-                currentPage={0}
-                totalPages={(this.sortedArray.length / this.pageSize) - 1}
-                onChange={(page) => this._getPage(page)}
-                limiterIcon={"Emoji12"} // Optional
-              /> */}
               <div className={styles.paginationDiv}>
                 <ReactPaginate
                   breakLabel="..."
