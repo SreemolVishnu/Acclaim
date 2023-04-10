@@ -3,7 +3,7 @@
   "solution": {
     "name": "nbo-detail-list-client-side-solution",
     "id": "0c45115a-e317-4ffd-b161-58cce3592ed8",
-    "version": "1.0.0.2",
+    "version": "1.0.0.3",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": true,
     "isDomainIsolated": false,

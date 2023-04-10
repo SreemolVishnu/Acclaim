@@ -298,23 +298,23 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
       oppurtunityType: "",
       sortTypeAsc: "",
       sortTypeDesc: "none",
-      sortOppurtunityTypeAsc: "",
+      sortOppurtunityTypeAsc: "asc",
       sortOppurtunityTypeDesc: "none",
-      SourceTypeAsc: "",
-      IndustryTypeAsc: "",
-      ClientNameTypeAsc: "",
-      ClassOfInsuranceTypeAsc: "",
-      EstStartDateTypeAsc: "",
-      CommentsTypeAsc: "",
-      EstimatedPremiumTypeAsc: "",
-      BrokerageTypeAsc: "",
-      EstimatedBrokerageTypeAsc: "",
-      NBOStageTypeAsc: "",
-      WeightedBrokerageTypeAsc: "",
-      FeesIfAnyTypeAsc: "",
-      ComplianceClearedTypeAsc: "",
-      DepartmentTypeAsc: "",
-      CreatedByTypeAsc: "",
+      SourceTypeAsc: "asc",
+      IndustryTypeAsc: "asc",
+      ClientNameTypeAsc: "asc",
+      ClassOfInsuranceTypeAsc: "asc",
+      EstStartDateTypeAsc: "asc",
+      CommentsTypeAsc: "asc",
+      EstimatedPremiumTypeAsc: "asc",
+      BrokerageTypeAsc: "asc",
+      EstimatedBrokerageTypeAsc: "asc",
+      NBOStageTypeAsc: "asc",
+      WeightedBrokerageTypeAsc: "asc",
+      FeesIfAnyTypeAsc: "asc",
+      ComplianceClearedTypeAsc: "asc",
+      DepartmentTypeAsc: "asc",
+      CreatedByTypeAsc: "asc",
       SourceTypeDesc: "none",
       IndustryTypeDesc: "none",
       ClientNameTypeDesc: "none",
@@ -389,11 +389,11 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
     this._selectDepartmentFromSameDepartmentTab = this._selectDepartmentFromSameDepartmentTab.bind(this);
     this._drpdwnOppurtunityType = this._drpdwnOppurtunityType.bind(this);
     this._onSortClickAscForMyNBO = this._onSortClickAscForMyNBO.bind(this);
-    this._onSortClickDescForMyNBO = this._onSortClickDescForMyNBO.bind(this);
+    // this._onSortClickDescForMyNBO = this._onSortClickDescForMyNBO.bind(this);
     this._onSortClickAscForSameDept = this._onSortClickAscForSameDept.bind(this);
-    this._onSortClickDescForSameDept = this._onSortClickDescForSameDept.bind(this);
+    //this._onSortClickDescForSameDept = this._onSortClickDescForSameDept.bind(this);
     this._onSortClickAscForOtherDept = this._onSortClickAscForOtherDept.bind(this);
-    this._onSortClickDescForOtherDept = this._onSortClickDescForOtherDept.bind(this);
+    // this._onSortClickDescForOtherDept = this._onSortClickDescForOtherDept.bind(this);
     this._filterPanelCloseButton = this._filterPanelCloseButton.bind(this);
     this._onFilter = this._onFilter.bind(this);
     this.filterColumnChange = this.filterColumnChange.bind(this);
@@ -544,46 +544,6 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
     } while (items.hasNext);
     return finalItems;
   }
-  private async SortItemAscMydepartments(selectItems, expand, sortBy) {
-    let finalItems: any[] = [];
-    let items: PagedItemCollection<any[]> = undefined;
-    do {
-      if (!items) {
-        items = await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName)
-          .items.select(selectItems).expand(expand).orderBy(sortBy, true)
-          .top(250)
-          .getPaged();
-      }
-      else {
-        items = await items.getNext();
-      }
-      if (items.results.length > 0) {
-        finalItems = finalItems.concat(items.results);
-      }
-    } while (items.hasNext);
-
-    return finalItems;
-  }
-  private async SortItemDescMydepartments(selectItems, expand, sortBy) {
-    let finalItems: any[] = [];
-    let items: PagedItemCollection<any[]> = undefined;
-    do {
-      if (!items) {
-        items = await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.nboListName)
-          .items.select(selectItems).expand(expand).orderBy(sortBy, false)
-          .top(250)
-          .getPaged();
-      }
-      else {
-        items = await items.getNext();
-      }
-      if (items.results.length > 0) {
-        finalItems = finalItems.concat(items.results);
-      }
-    } while (items.hasNext);
-
-    return finalItems;
-  }
   private async checkingcurrentUserDept() {
     await sp.web.getList(this.props.siteUrl + "/Lists/" + this.props.teamList).items.get()
       .then(teamItems => {
@@ -716,6 +676,7 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
     //alert(this.team)
     this.forDeptCreatedBy = "";
     let docProfileItems = [];
+    this.sortedArray = [];
     this.setState({
       sameDepartmentItems: "no",
       currentItemID: "",
@@ -1787,8 +1748,8 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
       filterConditions: [],
       divForNoDataFound: "none"
     });
-
     let tempArray = [];
+    this.sortedArray = [];
     let selectItems = "ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType";
     let expand = "Source,Industry,ClassOfInsurance,NBOStage,Author";
     this.pagedItemsForMydepartments(selectItems, expand).then(docItems => {
@@ -1824,6 +1785,7 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
     this.forDeptCreatedBy = "ok";
     //alert("others");
     let docProfileItems = [];
+    this.sortedArray = [];
     if (this.state.isNBOAdmin != "true") {
       let selectItems = "ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType";
       let expand = "Source,Industry,ClassOfInsurance,NBOStage,Author";
@@ -1902,534 +1864,242 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
     });
   }
   //sorting for MYNBO grid each header
-  private _onSortClickAscForMyNBO = async (sortBy, e) => {
-    if (this.state.divForNoDataFound == "none") {
-      let event = e.currentTarget.ariaLabel;
-      let eventID = e.currentTarget.id
-      let docProfileItems = [];
-      console.log(event);
-      this.setState({
-        sameDepartmentItems: "no",
-        currentItemID: "",
-      });
-      let selectItems = "ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,WeightedBrokerage,OpportunityType";
-      let expand = "Source,Industry,ClassOfInsurance,NBOStage,Author";
-      let filter = "Author/EMail eq '" + this.currentUserEmail + "'";
-      await this.sortItemsAsc(selectItems, expand, filter, sortBy).then(docItems => {
-        this.sortedArray = _.orderBy(docItems, sortBy, ['asc']);
-        this.setState({
-          docRepositoryItems: this.sortedArray,
-          divForSame: "none",
-          divForCurrentUser: "",
-          divForOtherDepts: "none",
-          divForDocumentUploadCompArrayDiv: "none",
-          divForShowingPagination: "",
-        });
-      });
-
-      switch (this.sortedArray.length > 0) {
-        case (event == "OpportunityType" || eventID == "OpportunityType"):
-          this.setState({
-            sortOppurtunityTypeDesc: "",
-            sortOppurtunityTypeAsc: "none",
-          });
-          break;
-        case (event == "Source" || eventID == "Source"):
-          this.setState({
-            SourceTypeDesc: "",
-            SourceTypeAsc: "none",
-          });
-          break;
-        case (event == "Industry" || eventID == "Industry"):
-          this.setState({
-            IndustryTypeDesc: "",
-            IndustryTypeAsc: "none",
-          });
-          break;
-        case (event == "Title" || eventID == "Title"):
-          this.setState({
-            ClientNameTypeDesc: "",
-            ClientNameTypeAsc: "none",
-          });
-          break;
-        case (event == "ClassOfInsurance" || eventID == "ClassOfInsurance"):
-          this.setState({
-            ClassOfInsuranceTypeDesc: "",
-            ClassOfInsuranceTypeAsc: "none",
-          });
-          break;
-        case (event == "EstimatedStartDate" || eventID == "EstimatedStartDate"):
-          this.setState({
-            EstStartDateTypeDesc: "",
-            EstStartDateTypeAsc: "none",
-          });
-          break;
-        case (event == "Comments" || eventID == "Comments"):
-          this.setState({
-            CommentsTypeDesc: "",
-            CommentsTypeAsc: "none",
-          });
-          break;
-        case (event == "EstimatedPremium" || eventID == "EstimatedPremium"):
-          this.setState({
-            EstimatedPremiumTypeDesc: "",
-            EstimatedPremiumTypeAsc: "none",
-          });
-          break;
-        case (event == "BrokeragePercentage" || eventID == "BrokeragePercentage"):
-          this.setState({
-            BrokerageTypeDesc: "",
-            BrokerageTypeAsc: "none",
-          });
-          break;
-        case (event == "EstimatedBrokerage" || eventID == "EstimatedBrokerage"):
-          this.setState({
-            EstimatedBrokerageTypeDesc: "",
-            EstimatedBrokerageTypeAsc: "none",
-          });
-          break;
-        case (event == "NBOStage" || eventID == "NBOStage"):
-          this.setState({
-            NBOStageTypeDesc: "",
-            NBOStageTypeAsc: "none",
-          });
-          break;
-        case (event == "WeightedBrokerage" || eventID == "WeightedBrokerage"):
-          this.setState({
-            WeightedBrokerageTypeDesc: "",
-            WeightedBrokerageTypeAsc: "none",
-          });
-          break;
-        case (event == "FeesIfAny" || eventID == "FeesIfAny"):
-          this.setState({
-            FeesIfAnyTypeDesc: "",
-            FeesIfAnyTypeAsc: "none",
-          });
-          break;
-        case (event == "ComplianceCleared" || eventID == "ComplianceCleared"):
-          this.setState({
-            ComplianceClearedTypeDesc: "",
-            ComplianceClearedTypeAsc: "none",
-          });
-          break;
-        case (event == "Department" || eventID == "Department"):
-          this.setState({
-            DepartmentTypeDesc: "",
-            DepartmentTypeAsc: "none",
-          });
-          break;
-        case (event == "Author" || eventID == "Author"):
-          this.setState({
-            CreatedByTypeDesc: "",
-            CreatedByTypeAsc: "none",
-          });
-          break;
-
-      }
-    }
-  }
-  private _onSortClickDescForMyNBO = async (sortBy, e) => {
-    //alert("SortClicked");
-    if (this.state.divForNoDataFound == "none") {
-      let event = e.currentTarget.ariaLabel;
-      let eventID = e.currentTarget.id;
-      let docProfileItems = [];
-      this.setState({
-        sameDepartmentItems: "no",
-        currentItemID: "",
-      });
-      let selectItems = "ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,WeightedBrokerage,OpportunityType";
-      let expand = "Source,Industry,ClassOfInsurance,NBOStage,Author";
-      let filter = "Author/EMail eq '" + this.currentUserEmail + "'";
-      await this.sortItemsDesc(selectItems, expand, filter, sortBy).then(docItems => {
-        this.sortedArray = _.orderBy(docItems, sortBy, ['desc']);
-        this.setState({
-          divForSame: "none",
-          divForCurrentUser: "",
-          divForOtherDepts: "none",
-          divForDocumentUploadCompArrayDiv: "none",
-          divForShowingPagination: "",
-          docRepositoryItems: this.sortedArray,
-        });
-      });
-      switch (this.sortedArray.length > 0) {
-        case (event == "OpportunityType" || eventID == "OpportunityType"):
-          this.setState({
-            sortOppurtunityTypeDesc: "none",
-            sortOppurtunityTypeAsc: "",
-          });
-          break;
-        case (event == "Source" || eventID == "Source"):
-          this.setState({
-            SourceTypeDesc: "none",
-            SourceTypeAsc: "",
-          });
-          break;
-        case (event == "Industry" || eventID == "Industry"):
-          this.setState({
-            IndustryTypeDesc: "none",
-            IndustryTypeAsc: "",
-          });
-          break;
-        case (event == "Title" || eventID == "Title"):
-          this.setState({
-            ClientNameTypeDesc: "none",
-            ClientNameTypeAsc: "",
-          });
-          break;
-        case (event == "ClassOfInsurance" || eventID == "ClassOfInsurance"):
-          this.setState({
-            ClassOfInsuranceTypeDesc: "none",
-            ClassOfInsuranceTypeAsc: "",
-          });
-          break;
-        case (event == "EstimatedStartDate" || eventID == "EstimatedStartDate"):
-          this.setState({
-            EstStartDateTypeDesc: "none",
-            EstStartDateTypeAsc: "",
-          });
-          break;
-        case (event == "Comments" || eventID == "Comments"):
-          this.setState({
-            CommentsTypeDesc: "none",
-            CommentsTypeAsc: "",
-          });
-          break;
-        case (event == "EstimatedPremium" || eventID == "EstimatedPremium"):
-          this.setState({
-            EstimatedPremiumTypeDesc: "none",
-            EstimatedPremiumTypeAsc: "",
-          });
-          break;
-        case (event == "Brokerage" || eventID == "Brokerage"):
-          this.setState({
-            BrokerageTypeDesc: "none",
-            BrokerageTypeAsc: "",
-          });
-          break;
-        case (event == "EstimatedBrokerage" || eventID == "EstimatedBrokerage"):
-          this.setState({
-            EstimatedBrokerageTypeDesc: "none",
-            EstimatedBrokerageTypeAsc: "",
-          });
-          break;
-        case (event == "NBOStage" || eventID == "NBOStage"):
-          this.setState({
-            NBOStageTypeDesc: "none",
-            NBOStageTypeAsc: "",
-          });
-          break;
-        case (event == "WeightedBrokerage" || eventID == "WeightedBrokerage"):
-          this.setState({
-            WeightedBrokerageTypeDesc: "none",
-            WeightedBrokerageTypeAsc: "",
-          });
-          break;
-        case (event == "FeesIfAny" || eventID == "FeesIfAny"):
-          this.setState({
-            FeesIfAnyTypeDesc: "none",
-            FeesIfAnyTypeAsc: "",
-          });
-          break;
-        case (event == "ComplianceCleared" || eventID == "ComplianceCleared"):
-          this.setState({
-            ComplianceClearedTypeDesc: "none",
-            ComplianceClearedTypeAsc: "",
-          });
-          break;
-        case (event == "Department" || eventID == "Department"):
-          this.setState({
-            DepartmentTypeDesc: "none",
-            DepartmentTypeAsc: "",
-          });
-          break;
-        case (event == "Author" || eventID == "Author"):
-          this.setState({
-            CreatedByTypeDesc: "none",
-            CreatedByTypeAsc: "",
-          });
-          break;
-
-      }
-    }
-  }
-  //sorting for MYNBO grid each header
-  private _onSortClickAscForSameDept = async (sortBy, e) => {
+  private _onSortClickAscForMyNBO = async (e, sortOrder) => {
     if (this.state.divForNoDataFound == "none") {
       console.log("Sorted Array items", this.sortedArray);
-      let event = e.currentTarget.ariaLabel;
+      let event;
+      if (e.currentTarget.ariaLabel !== undefined)
+        event = e.currentTarget.ariaLabel;
+      else
+        event = e.currentTarget.id;
+      console.log(event);
       let eventID = e.currentTarget.id;
-      if (sortBy === "Comments" || sortBy === "EstimatedBrokerage") {
+      let docProfileItems = [];
+      this.setState({
+        sameDepartmentItems: "no",
+        currentItemID: "",
+      });
+      let tempArray = [];
+      tempArray = this.sortedArray;
+      this.sortedArray = _.orderBy(tempArray, [(u) =>
+        event === "NBOStage" || event === "Author" || event === "Author" || event === "Source" || event == "ClassOfInsurance" || event == "Industry" ?
+          u[`${event}`]["Title"].toLowerCase() : event === "Title" ? u[`${event}`].toLowerCase() : u[`${event}`]],
+        [sortOrder]);
+      this.setState({
+        docRepositoryItems: this.sortedArray,
+        divForSame: "none",
+        divForCurrentUser: "",
+        divForOtherDepts: "none",
+        divForDocumentUploadCompArrayDiv: "none",
+        divForShowingPagination: "",
+      });
+      if (tempArray.length == 0) {
+        this.setState({ noItemErrorMsg: "" });
       }
-      else {
-        let docProfileItems = [];
-        this.sortedArray = [];
-        console.log(event);
-        this.setState({
-          sameDepartmentItems: "Yes",
-          currentItemID: "",
-          paginatedItems: [],
-        });
-        let tempArray = [];
-        let selectItems = "ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType";
-        let expand = "Source,Industry,ClassOfInsurance,NBOStage,Author";
-        await this.SortItemAscMydepartments(selectItems, expand, sortBy).then(docItems => {
-          for (let sd = 0; sd < this.state.oppurtunityDept.length; sd++) {
-            for (let listItem = 0; listItem < docItems.length; listItem++) {
-              if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text) {
-                tempArray.push(docItems[listItem]);
-              }
-            }
-          }
-          this.sortedArray = _.orderBy(tempArray, sortBy, ['asc']);
-          this.setState({
-            divForSame: "",
-            divForCurrentUser: "none",
-            divForOtherDepts: "none",
-            docRepositoryItems: this.sortedArray,
-          });
-          if (tempArray.length == 0) {
-            this.setState({ noItemErrorMsg: "" });
-          }
-        });
-        console.log(event);
-      }
-
+      console.log(event);
       switch (this.sortedArray.length > 0) {
-        case (event == "OpportunityType" || eventID == "OpportunityType"):
+        case (e.currentTarget.ariaLabel == "OpportunityType" || eventID == "OpportunityType"):
           this.setState({
-            sortOppurtunityTypeDesc: "",
-            sortOppurtunityTypeAsc: "none",
+            sortOppurtunityTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "Source" || eventID == "Source"):
+        case (e.currentTarget.ariaLabel == "Source" || eventID == "Source"):
           this.setState({
-            SourceTypeDesc: "",
-            SourceTypeAsc: "none",
+            SourceTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "Industry" || eventID == "Industry"):
+        case (e.currentTarget.ariaLabel == "Industry" || eventID == "Industry"):
           this.setState({
-            IndustryTypeDesc: "",
-            IndustryTypeAsc: "none",
+            IndustryTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "Title" || eventID == "Title"):
+        case (e.currentTarget.ariaLabel == "Title" || eventID == "Title"):
           this.setState({
-            ClientNameTypeDesc: "",
-            ClientNameTypeAsc: "none",
+            ClientNameTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "ClassOfInsurance" || eventID == "ClassOfInsurance"):
+        case (e.currentTarget.ariaLabel == "ClassOfInsurance" || eventID == "ClassOfInsurance"):
           this.setState({
-            ClassOfInsuranceTypeDesc: "",
-            ClassOfInsuranceTypeAsc: "none",
+            ClassOfInsuranceTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "EstimatedStartDate" || eventID == "EstimatedStartDate"):
+        case (e.currentTarget.ariaLabel == "EstimatedStartDate" || eventID == "EstimatedStartDate"):
           this.setState({
-            EstStartDateTypeDesc: "",
-            EstStartDateTypeAsc: "none",
+            EstStartDateTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "Comments" || eventID == "Comments"):
+        case (e.currentTarget.ariaLabel == "Comments" || eventID == "Comments"):
           this.setState({
-            CommentsTypeDesc: "",
-            CommentsTypeAsc: "none",
+            CommentsTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "EstimatedPremium" || eventID == "EstimatedPremium"):
+        case (e.currentTarget.ariaLabel == "EstimatedPremium" || eventID == "EstimatedPremium"):
           this.setState({
-            EstimatedPremiumTypeDesc: "",
-            EstimatedPremiumTypeAsc: "none",
+            EstimatedPremiumTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "BrokeragePercentage" || eventID == "BrokeragePercentage"):
+        case (e.currentTarget.ariaLabel == "BrokeragePercentage" || eventID == "BrokeragePercentage"):
           this.setState({
-            BrokerageTypeDesc: "",
-            BrokerageTypeAsc: "none",
+            BrokerageTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "EstimatedBrokerage" || eventID == "EstimatedBrokerage"):
+        case (e.currentTarget.ariaLabel == "EstimatedBrokerage" || eventID == "EstimatedBrokerage"):
           this.setState({
-            EstimatedBrokerageTypeDesc: "",
-            EstimatedBrokerageTypeAsc: "none",
+            EstimatedBrokerageTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "NBOStage" || eventID == "NBOStage"):
+        case (e.currentTarget.ariaLabel == "NBOStage" || eventID == "NBOStage"):
           this.setState({
-            NBOStageTypeDesc: "",
-            NBOStageTypeAsc: "none",
+            NBOStageTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "WeightedBrokerage" || eventID == "WeightedBrokerage"):
+        case (e.currentTarget.ariaLabel == "WeightedBrokerage" || eventID == "WeightedBrokerage"):
           this.setState({
-            WeightedBrokerageTypeDesc: "",
-            WeightedBrokerageTypeAsc: "none",
+            WeightedBrokerageTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "FeesIfAny" || eventID == "FeesIfAny"):
+        case (e.currentTarget.ariaLabel == "FeesIfAny" || eventID == "FeesIfAny"):
           this.setState({
-            FeesIfAnyTypeDesc: "",
-            FeesIfAnyTypeAsc: "none",
+            FeesIfAnyTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "ComplianceCleared" || eventID == "ComplianceCleared"):
+        case (e.currentTarget.ariaLabel == "ComplianceCleared" || eventID == "ComplianceCleared"):
           this.setState({
-            ComplianceClearedTypeDesc: "",
-            ComplianceClearedTypeAsc: "none",
+            ComplianceClearedTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "Department" || eventID == "Department"):
+        case (e.currentTarget.ariaLabel == "Department" || eventID == "Department"):
           this.setState({
-            DepartmentTypeDesc: "",
-            DepartmentTypeAsc: "none",
+            DepartmentTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "Author" || eventID == "Author"):
+        case (e.currentTarget.ariaLabel == "Author" || eventID == "Author"):
           this.setState({
-            CreatedByTypeDesc: "",
-            CreatedByTypeAsc: "none",
+            CreatedByTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
 
       }
     }
+
   }
-  private _onSortClickDescForSameDept = async (sortBy, e) => {
+
+  //sorting for MYNBO grid each header
+  private _onSortClickAscForSameDept = async (e, sortOrder) => {
     if (this.state.divForNoDataFound == "none") {
-      let event = e.currentTarget.ariaLabel;
-      let eventID = e.currentTarget.id;
-      if (sortBy === "Comments" || sortBy === "EstimatedBrokerage") {
+      console.log("Sorted Array items", this.sortedArray);
+      let event;
+      if (e.currentTarget.ariaLabel !== undefined) {
+        event = e.currentTarget.ariaLabel;
       }
       else {
-        let docProfileItems = [];
-        this.sortedArray = [];
-        this.setState({
-          sameDepartmentItems: "Yes",
-          currentItemID: "",
-          paginatedItems: [],
-        });
-        let tempArray = [];
-        let selectItems = "ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType";
-        let expand = "Source,Industry,ClassOfInsurance,NBOStage,Author";
-        await this.SortItemDescMydepartments(selectItems, expand, sortBy).then(docItems => {
-          for (let sd = 0; sd < this.state.oppurtunityDept.length; sd++) {
-            for (let listItem = 0; listItem < docItems.length; listItem++) {
-              if (docItems[listItem].Department == this.state.oppurtunityDept[sd].text) {
-                tempArray.push(docItems[listItem]);
-              }
-            }
-          }
-          this.sortedArray = _.orderBy(tempArray, sortBy, ['desc']);
-          if (tempArray.length == 0) {
-            this.setState({ noItemErrorMsg: "" });
-          }
-          this.setState({
-            divForSame: "",
-            divForCurrentUser: "none",
-            divForOtherDepts: "none",
-            docRepositoryItems: this.sortedArray,
-          });
-
-        });
-
+        event = e.currentTarget.id;
       }
+      console.log(event);
+      let eventID = e.currentTarget.id;
+      let docProfileItems = [];
+      //this.sortedArray = [];
+      console.log(event);
+      this.setState({
+        sameDepartmentItems: "Yes",
+        currentItemID: "",
+        paginatedItems: [],
+      });
+      let tempArray = [];
+      tempArray = this.sortedArray;
+      this.sortedArray = _.orderBy(tempArray, [(u) =>
+        event === "NBOStage" || event === "Author" || event === "Author" || event === "Source" || event == "ClassOfInsurance" || event == "Industry" ?
+          u[`${event}`]["Title"].toLowerCase() : event === "Title" ? u[`${event}`].toLowerCase() : u[`${event}`]],
+        [sortOrder]);
+      this.setState({
+        divForSame: "",
+        divForCurrentUser: "none",
+        divForOtherDepts: "none",
+        docRepositoryItems: this.sortedArray,
+      });
+      if (tempArray.length == 0) {
+        this.setState({ noItemErrorMsg: "" });
+      }
+      console.log(event);
       switch (this.sortedArray.length > 0) {
-        case (event == "OpportunityType" || eventID == "OpportunityType"):
+        case (e.currentTarget.ariaLabel == "OpportunityType" || eventID == "OpportunityType"):
           this.setState({
-            sortOppurtunityTypeDesc: "none",
-            sortOppurtunityTypeAsc: "",
+            sortOppurtunityTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "Source" || eventID == "Source"):
+        case (e.currentTarget.ariaLabel == "Source" || eventID == "Source"):
           this.setState({
-            SourceTypeDesc: "none",
-            SourceTypeAsc: "",
+            SourceTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "Industry" || eventID == "Industry"):
+        case (e.currentTarget.ariaLabel == "Industry" || eventID == "Industry"):
           this.setState({
-            IndustryTypeDesc: "none",
-            IndustryTypeAsc: "",
+            IndustryTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "Title" || eventID == "Title"):
+        case (e.currentTarget.ariaLabel == "Title" || eventID == "Title"):
           this.setState({
-            ClientNameTypeDesc: "none",
-            ClientNameTypeAsc: "",
+            ClientNameTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "ClassOfInsurance" || eventID == "ClassOfInsurance"):
+        case (e.currentTarget.ariaLabel == "ClassOfInsurance" || eventID == "ClassOfInsurance"):
           this.setState({
-            ClassOfInsuranceTypeDesc: "none",
-            ClassOfInsuranceTypeAsc: "",
+            ClassOfInsuranceTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "EstimatedStartDate" || eventID == "EstimatedStartDate"):
+        case (e.currentTarget.ariaLabel == "EstimatedStartDate" || eventID == "EstimatedStartDate"):
           this.setState({
-            EstStartDateTypeDesc: "none",
-            EstStartDateTypeAsc: "",
+            EstStartDateTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "Comments" || eventID == "Comments"):
+        case (e.currentTarget.ariaLabel == "Comments" || eventID == "Comments"):
           this.setState({
-            CommentsTypeDesc: "none",
-            CommentsTypeAsc: "",
+            CommentsTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "EstimatedPremium" || eventID == "EstimatedPremium"):
+        case (e.currentTarget.ariaLabel == "EstimatedPremium" || eventID == "EstimatedPremium"):
           this.setState({
-            EstimatedPremiumTypeDesc: "none",
-            EstimatedPremiumTypeAsc: "",
+            EstimatedPremiumTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "Brokerage" || eventID == "Brokerage"):
+        case (e.currentTarget.ariaLabel == "BrokeragePercentage" || eventID == "BrokeragePercentage"):
           this.setState({
-            BrokerageTypeDesc: "none",
-            BrokerageTypeAsc: "",
+            BrokerageTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "EstimatedBrokerage" || eventID == "EstimatedBrokerage"):
+        case (e.currentTarget.ariaLabel == "EstimatedBrokerage" || eventID == "EstimatedBrokerage"):
           this.setState({
-            EstimatedBrokerageTypeDesc: "none",
-            EstimatedBrokerageTypeAsc: "",
+            EstimatedBrokerageTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "NBOStage" || eventID == "NBOStage"):
+        case (e.currentTarget.ariaLabel == "NBOStage" || eventID == "NBOStage"):
           this.setState({
-            NBOStageTypeDesc: "none",
-            NBOStageTypeAsc: "",
+            NBOStageTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "WeightedBrokerage" || eventID == "WeightedBrokerage"):
+        case (e.currentTarget.ariaLabel == "WeightedBrokerage" || eventID == "WeightedBrokerage"):
           this.setState({
-            WeightedBrokerageTypeDesc: "none",
-            WeightedBrokerageTypeAsc: "",
+            WeightedBrokerageTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "FeesIfAny" || eventID == "FeesIfAny"):
+        case (e.currentTarget.ariaLabel == "FeesIfAny" || eventID == "FeesIfAny"):
           this.setState({
-            FeesIfAnyTypeDesc: "none",
-            FeesIfAnyTypeAsc: "",
+            FeesIfAnyTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "ComplianceCleared" || eventID == "ComplianceCleared"):
+        case (e.currentTarget.ariaLabel == "ComplianceCleared" || eventID == "ComplianceCleared"):
           this.setState({
-            ComplianceClearedTypeDesc: "none",
-            ComplianceClearedTypeAsc: "",
+            ComplianceClearedTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "Department" || eventID == "Department"):
+        case (e.currentTarget.ariaLabel == "Department" || eventID == "Department"):
           this.setState({
-            DepartmentTypeDesc: "none",
-            DepartmentTypeAsc: "",
+            DepartmentTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "Author" || eventID == "Author"):
+        case (e.currentTarget.ariaLabel == "Author" || eventID == "Author"):
           this.setState({
-            CreatedByTypeDesc: "none",
-            CreatedByTypeAsc: "",
+            CreatedByTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
 
@@ -2437,303 +2107,127 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
     }
   }
   //sorting for Other Dept grid each header
-  private _onSortClickAscForOtherDept = async (sortBy, e) => {
+  private _onSortClickAscForOtherDept = async (e, sortOrder) => {
     if (this.state.divForNoDataFound == "none") {
-      let event = e.currentTarget.ariaLabel;
+      let event;
+      if (e.currentTarget.ariaLabel !== undefined)
+        event = e.currentTarget.ariaLabel;
+      else
+        event = e.currentTarget.id;
       let eventID = e.currentTarget.id;
       console.log(event);
-      let docProfileItems = [];
-      if (this.state.isNBOAdmin != "true") {
-        //not an NBO Admin
-        let tempArray = [];
-        let selectItems = "ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType";
-        let expand = "Source,Industry,ClassOfInsurance,NBOStage,Author";
-        let filter = "Author/EMail ne '" + this.currentUserEmail + "' and Department ne '" + this.team + "'"
-        await this.sortItemsAsc(selectItems, expand, filter, sortBy).then(docItems => {
-          this.sortedArray = _.orderBy(docItems, sortBy, ['asc']);
-          this.setState({
-            arrayForShowingPagination: docItems,
-            docRepositoryItems: this.sortedArray,
-            items: this.sortedArray,
-            noItemErrorMsg: this.sortedArray.length == 0 ? " " : "none"
-          });
-          if (this.sortedArray.length == 0) {
-            this.setState({ noItemErrorMsg: "" });
-          }
-          this.setState({
-            divForSame: "none",
-            divForOtherDepts: "",
-            divForCurrentUser: "none"
-          });
-        });
+      this.setState({
+        sameDepartmentItems: "Yes",
+        currentItemID: "",
+        paginatedItems: [],
+      });
+      let tempArray = [];
+      tempArray = this.sortedArray;
+      this.sortedArray = _.orderBy(tempArray, [(u) =>
+        event === "NBOStage" || event === "Author" || event === "Author" || event === "Source" || event == "ClassOfInsurance" || event == "Industry" ?
+          u[`${event}`]["Title"].toLowerCase() : event === "Title" ? u[`${event}`].toLowerCase() : u[`${event}`]],
+        [sortOrder]);
+      this.setState({
+        arrayForShowingPagination: this.sortedArray,
+        docRepositoryItems: this.sortedArray,
+        items: this.sortedArray,
+        noItemErrorMsg: this.sortedArray.length == 0 ? " " : "none"
+      });
+      if (this.sortedArray.length == 0) {
+        this.setState({ noItemErrorMsg: "" });
       }
-      else {
-        //alert(this.state.isNBOAdmin);
-        let selectItems = "ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType";
-        let expand = "Source,Industry,ClassOfInsurance,NBOStage,Author";
-        this.SortItemAscMydepartments(selectItems, expand, sortBy).then(docItems => {
-          this.sortedArray = _.orderBy(docItems, 'ID', ['desc']);
-
-          if (docProfileItems.length == 0) {
-            this.setState({ noItemErrorMsg: "" });
-          }
-        });
-        this.setState({
-          divForSame: "none",
-          divForOtherDepts: "",
-          divForCurrentUser: "none"
-        });
-      }
+      this.setState({
+        divForSame: "none",
+        divForOtherDepts: "",
+        divForCurrentUser: "none"
+      });
       console.log(event);
       switch (this.sortedArray.length > 0) {
-        case (event == "OpportunityType" || eventID == "OpportunityType"):
+        case (e.currentTarget.ariaLabel == "OpportunityType" || eventID == "OpportunityType"):
           this.setState({
-            sortOppurtunityTypeDesc: "",
-            sortOppurtunityTypeAsc: "none",
+            sortOppurtunityTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "Source" || eventID == "Source"):
+        case (e.currentTarget.ariaLabel == "Source" || eventID == "Source"):
           this.setState({
-            SourceTypeDesc: "",
-            SourceTypeAsc: "none",
+            SourceTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-
-        case (event == "Industry" || eventID == "Industry"):
+        case (e.currentTarget.ariaLabel == "Industry" || eventID == "Industry"):
           this.setState({
-            IndustryTypeDesc: "",
-            IndustryTypeAsc: "none",
+            IndustryTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "Title" || eventID == "Title"):
+        case (e.currentTarget.ariaLabel == "Title" || eventID == "Title"):
           this.setState({
-            ClientNameTypeDesc: "",
-            ClientNameTypeAsc: "none",
+            ClientNameTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "ClassOfInsurance" || eventID == "ClassOfInsurance"):
+        case (e.currentTarget.ariaLabel == "ClassOfInsurance" || eventID == "ClassOfInsurance"):
           this.setState({
-            ClassOfInsuranceTypeDesc: "",
-            ClassOfInsuranceTypeAsc: "none",
+            ClassOfInsuranceTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "EstimatedStartDate" || eventID == "EstimatedStartDate"):
+        case (e.currentTarget.ariaLabel == "EstimatedStartDate" || eventID == "EstimatedStartDate"):
           this.setState({
-            EstStartDateTypeDesc: "",
-            EstStartDateTypeAsc: "none",
+            EstStartDateTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "Comments" || eventID == "Comments"):
+        case (e.currentTarget.ariaLabel == "Comments" || eventID == "Comments"):
           this.setState({
-            CommentsTypeDesc: "",
-            CommentsTypeAsc: "none",
+            CommentsTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "EstimatedPremium" || eventID == "EstimatedPremium"):
+        case (e.currentTarget.ariaLabel == "EstimatedPremium" || eventID == "EstimatedPremium"):
           this.setState({
-            EstimatedPremiumTypeDesc: "",
-            EstimatedPremiumTypeAsc: "none",
+            EstimatedPremiumTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "BrokeragePercentage" || eventID == "BrokeragePercentage"):
+        case (e.currentTarget.ariaLabel == "BrokeragePercentage" || eventID == "BrokeragePercentage"):
           this.setState({
-            BrokerageTypeDesc: "",
-            BrokerageTypeAsc: "none",
+            BrokerageTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "EstimatedBrokerage" || eventID == "EstimatedBrokerage"):
+        case (e.currentTarget.ariaLabel == "EstimatedBrokerage" || eventID == "EstimatedBrokerage"):
           this.setState({
-            EstimatedBrokerageTypeDesc: "",
-            EstimatedBrokerageTypeAsc: "none",
+            EstimatedBrokerageTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "NBOStage" || eventID == "NBOStage"):
+        case (e.currentTarget.ariaLabel == "NBOStage" || eventID == "NBOStage"):
           this.setState({
-            NBOStageTypeDesc: "",
-            NBOStageTypeAsc: "none",
+            NBOStageTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "WeightedBrokerage" || eventID == "WeightedBrokerage"):
+        case (e.currentTarget.ariaLabel == "WeightedBrokerage" || eventID == "WeightedBrokerage"):
           this.setState({
-            WeightedBrokerageTypeDesc: "",
-            WeightedBrokerageTypeAsc: "none",
+            WeightedBrokerageTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "FeesIfAny" || eventID == "FeesIfAny"):
+        case (e.currentTarget.ariaLabel == "FeesIfAny" || eventID == "FeesIfAny"):
           this.setState({
-            FeesIfAnyTypeDesc: "",
-            FeesIfAnyTypeAsc: "none",
+            FeesIfAnyTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "ComplianceCleared" || eventID == "ComplianceCleared"):
+        case (e.currentTarget.ariaLabel == "ComplianceCleared" || eventID == "ComplianceCleared"):
           this.setState({
-            ComplianceClearedTypeDesc: "",
-            ComplianceClearedTypeAsc: "none",
+            ComplianceClearedTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "Department" || eventID == "Department"):
+        case (e.currentTarget.ariaLabel == "Department" || eventID == "Department"):
           this.setState({
-            DepartmentTypeDesc: "",
-            DepartmentTypeAsc: "none",
+            DepartmentTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-        case (event == "Author" || eventID == "Author"):
+        case (e.currentTarget.ariaLabel == "Author" || eventID == "Author"):
           this.setState({
-            CreatedByTypeDesc: "",
-            CreatedByTypeAsc: "none",
+            CreatedByTypeAsc: sortOrder == "asc" ? "desc" : 'asc'
           });
           break;
-
       }
     }
-  }
-  private _onSortClickDescForOtherDept = async (sortBy, e) => {
-    if (this.state.divForNoDataFound == "none") {
-      let event = e.currentTarget.ariaLabel;
-      let eventID = e.currentTarget.id;
-      let docProfileItems = [];
-      console.log(event);
-      if (this.state.isNBOAdmin != "true") {
-        //not an NBO Admin
-        let tempArray = [];
-        let selectItems = "ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType";
-        let expand = "Source,Industry,ClassOfInsurance,NBOStage,Author";
-        let filter = "Author/EMail ne '" + this.currentUserEmail + "' and Department ne '" + this.team + "'"
-        await this.sortItemsDesc(selectItems, expand, filter, sortBy).then(docItems => {
-          this.sortedArray = _.orderBy(docItems, sortBy, ['asc']);
-          this.setState({
-            arrayForShowingPagination: docItems,
-            docRepositoryItems: this.sortedArray,
-            items: this.sortedArray,
-            noItemErrorMsg: this.sortedArray.length == 0 ? " " : "none"
-          });
-          if (this.sortedArray.length == 0) {
-            this.setState({ noItemErrorMsg: "" });
-          }
-          this.setState({
-            divForSame: "none",
-            divForOtherDepts: "",
-            divForCurrentUser: "none"
-          });
-        });
-      }
-      else {
-        //alert(this.state.isNBOAdmin);
-        let selectItems = "ID,Title,Source/Title,Industry/Title,ClassOfInsurance/Title,NBOStage/Title,BrokeragePercentage,Source/ID,Industry/ID,ClassOfInsurance/ID,NBOStage/ID,EstimatedBrokerage,FeesIfAny,Comments,EstimatedStartDate,EstimatedPremium,Department,ComplianceCleared,EstimatedBrokerage,Author/EMail,Author/Title,WeightedBrokerage,OpportunityType";
-        let expand = "Source,Industry,ClassOfInsurance,NBOStage,Author";
-        this.SortItemDescMydepartments(selectItems, expand, sortBy).then(docItems => {
-          this.sortedArray = _.orderBy(docItems, 'ID', ['desc']);
-          if (docProfileItems.length == 0) {
-            this.setState({ noItemErrorMsg: "" });
-          }
-        });
-        this.setState({
-          divForSame: "none",
-          divForOtherDepts: "",
-          divForCurrentUser: "none"
-        });
-      }
-      switch (this.sortedArray.length > 0) {
-        case (event == "OpportunityType" || eventID == "OpportunityType"):
-          this.setState({
-            sortOppurtunityTypeDesc: "none",
-            sortOppurtunityTypeAsc: "",
-          });
-          break;
-        case (event == "Source" || eventID == "Source"):
-          this.setState({
-            SourceTypeDesc: "none",
-            SourceTypeAsc: "",
-          });
-          break;
-        case (event == "Industry" || eventID == "Industry"):
-          this.setState({
-            IndustryTypeDesc: "none",
-            IndustryTypeAsc: "",
-          });
-          break;
-        case (event == "Title" || eventID == "Title"):
-          this.setState({
-            ClientNameTypeDesc: "none",
-            ClientNameTypeAsc: "",
-          });
-          break;
-        case (event == "ClassOfInsurance" || eventID == "ClassOfInsurance"):
-          this.setState({
-            ClassOfInsuranceTypeDesc: "none",
-            ClassOfInsuranceTypeAsc: "",
-          });
-          break;
-        case (event == "EstimatedStartDate" || eventID == "EstimatedStartDate"):
-          this.setState({
-            EstStartDateTypeDesc: "none",
-            EstStartDateTypeAsc: "",
-          });
-          break;
-        case (event == "Comments" || eventID == "Comments"):
-          this.setState({
-            CommentsTypeDesc: "none",
-            CommentsTypeAsc: "",
-          });
-          break;
-        case (event == "EstimatedPremium" || eventID == "EstimatedPremium"):
-          this.setState({
-            EstimatedPremiumTypeDesc: "none",
-            EstimatedPremiumTypeAsc: "",
-          });
-          break;
-        case (event == "Brokerage" || eventID == "Brokerage"):
-          this.setState({
-            BrokerageTypeDesc: "none",
-            BrokerageTypeAsc: "",
-          });
-          break;
-        case (event == "EstimatedBrokerage" || eventID == "EstimatedBrokerage"):
-          this.setState({
-            EstimatedBrokerageTypeDesc: "none",
-            EstimatedBrokerageTypeAsc: "",
-          });
-          break;
-        case (event == "NBOStage" || eventID == "NBOStage"):
-          this.setState({
-            NBOStageTypeDesc: "none",
-            NBOStageTypeAsc: "",
-          });
-          break;
-        case (event == "WeightedBrokerage" || eventID == "WeightedBrokerage"):
-          this.setState({
-            WeightedBrokerageTypeDesc: "none",
-            WeightedBrokerageTypeAsc: "",
-          });
-          break;
-        case (event == "FeesIfAny" || eventID == "FeesIfAny"):
-          this.setState({
-            FeesIfAnyTypeDesc: "none",
-            FeesIfAnyTypeAsc: "",
-          });
-          break;
-        case (event == "ComplianceCleared" || eventID == "ComplianceCleared"):
-          this.setState({
-            ComplianceClearedTypeDesc: "none",
-            ComplianceClearedTypeAsc: "",
-          });
-          break;
-        case (event == "Department" || eventID == "Department"):
-          this.setState({
-            DepartmentTypeDesc: "none",
-            DepartmentTypeAsc: "",
-          });
-          break;
-        case (event == "Author" || eventID == "Author"):
-          this.setState({
-            CreatedByTypeDesc: "none",
-            CreatedByTypeAsc: "",
-          });
-          break;
 
-      }
-    }
   }
+
   //filter
   private _onFilter = () => {
     let tempSortedItems = [];
@@ -5399,80 +4893,63 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
                 <th style={{ padding: "5px 10px", }}>
                   <div style={{ display: "flex" }}>
                     Opportunity Type
-                    <IconButton id="OpportunityType" style={{ color: "Black", display: this.state.sortOppurtunityTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="OpportunityType" onClick={(e) => this._onSortClickAscForMyNBO('OpportunityType', e)} />
-                    <IconButton id="OpportunityType" style={{ color: "Black", display: this.state.sortOppurtunityTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="OpportunityType" onClick={(e) => this._onSortClickDescForMyNBO('OpportunityType', e)} />
-
+                    <IconButton id="OpportunityType" style={{ color: "Black", }} iconProps={this.state.sortOppurtunityTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="OpportunityType" onClick={(e) => this._onSortClickAscForMyNBO(e, this.state.sortOppurtunityTypeAsc)} />
                   </div>
                 </th>
                 <th style={{ padding: "5px 10px", }}>
                   <div style={{ display: "flex" }}>Source
-                    <IconButton id="Source" style={{ color: "Black", display: this.state.SourceTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Source" onClick={(e) => this._onSortClickAscForMyNBO('Source', e)} />
-                    <IconButton id="Source" style={{ color: "Black", display: this.state.SourceTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Source" onClick={(e) => this._onSortClickDescForMyNBO('Source', e)} />
-
+                    <IconButton id="Source" style={{ color: "Black" }} iconProps={this.state.SourceTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="Source" onClick={(e) => this._onSortClickAscForMyNBO(e, this.state.SourceTypeAsc)} />
                   </div></th>
 
                 <th style={{ padding: "5px 10px" }}>
                   <div style={{ display: "flex" }}> Industry
-                    <IconButton id="Industry" style={{ color: "Black", display: this.state.IndustryTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Industry" onClick={(e) => this._onSortClickAscForMyNBO('Industry', e)} />
-                    <IconButton id="Industry" style={{ color: "Black", display: this.state.IndustryTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Industry" onClick={(e) => this._onSortClickDescForMyNBO('Industry', e)} />
+                    <IconButton id="Industry" style={{ color: "Black" }} iconProps={this.state.IndustryTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="Industry" onClick={(e) => this._onSortClickAscForMyNBO(e, this.state.IndustryTypeAsc)} />
                   </div>
                 </th>
                 <th style={{ padding: "5px 10px" }}>
                   <div style={{ display: "flex" }}>Client Name
-                    <IconButton id="ClientName" style={{ color: "Black", display: this.state.ClientNameTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Title" onClick={(e) => this._onSortClickAscForMyNBO('Title', e)} />
-                    <IconButton id="ClientName" style={{ color: "Black", display: this.state.ClientNameTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Title" onClick={(e) => this._onSortClickDescForMyNBO('Title', e)} />
+                    <IconButton id="Title" style={{ color: "Black" }} iconProps={this.state.ClientNameTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="Title" onClick={(e) => this._onSortClickAscForMyNBO(e, this.state.ClientNameTypeAsc)} />
                   </div> </th>
                 <th style={{ padding: "5px 10px", }}>
                   <div style={{ display: "flex" }}>Class of Insurance
-                    <IconButton id="ClassOfInsurance" style={{ color: "Black", display: this.state.ClassOfInsuranceTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="ClassOfInsurance" onClick={(e) => this._onSortClickAscForMyNBO('ClassOfInsurance', e)} />
-                    <IconButton id="ClassOfInsurance" style={{ color: "Black", display: this.state.ClassOfInsuranceTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="ClassOfInsurance" onClick={(e) => this._onSortClickDescForMyNBO('ClassOfInsurance', e)} />
+                    <IconButton id="ClassOfInsurance" style={{ color: "Black" }} iconProps={this.state.ClassOfInsuranceTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="ClassOfInsurance" onClick={(e) => this._onSortClickAscForMyNBO(e, this.state.ClassOfInsuranceTypeAsc)} />
                   </div></th>
                 <th style={{ padding: "5px 10px", }}>
                   <div style={{ display: "flex" }}>Est Start Date
-                    <IconButton id="EstimatedStartDate" style={{ color: "Black", display: this.state.EstStartDateTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="EstimatedStartDate" onClick={(e) => this._onSortClickAscForMyNBO('EstimatedStartDate', e)} />
-                    <IconButton id="EstimatedStartDate" style={{ color: "Black", display: this.state.EstStartDateTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="EstimatedStartDate" onClick={(e) => this._onSortClickDescForMyNBO('EstimatedStartDate', e)} />
+                    <IconButton id="EstimatedStartDate" style={{ color: "Black" }} iconProps={this.state.EstStartDateTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="EstimatedStartDate" onClick={(e) => this._onSortClickAscForMyNBO(e, this.state.EstStartDateTypeAsc)} />
                   </div></th>
                 <th style={{ padding: "5px 10px", }}>
                   <div style={{ display: "flex" }}>Comments
-                    <IconButton id="Comments" style={{ color: "Black", display: this.state.CommentsTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Comments" onClick={(e) => this._onSortClickAscForMyNBO('Comments', e)} />
-                    <IconButton id="Comments" style={{ color: "Black", display: this.state.CommentsTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Comments" onClick={(e) => this._onSortClickDescForMyNBO('Comments', e)} />
                   </div></th>
                 <th style={{ padding: "5px 10px", }}>
                   <div style={{ display: "flex" }}>Estimated Premium
-                    <IconButton id="EstimatedPremium" style={{ color: "Black", display: this.state.EstimatedPremiumTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="EstimatedPremium" onClick={(e) => this._onSortClickAscForMyNBO('EstimatedPremium', e)} />
-                    <IconButton id="EstimatedPremium" style={{ color: "Black", display: this.state.EstimatedPremiumTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="EstimatedPremium" onClick={(e) => this._onSortClickDescForMyNBO('EstimatedPremium', e)} />
+                    <IconButton id="EstimatedPremium" style={{ color: "Black" }} iconProps={this.state.EstimatedPremiumTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="EstimatedPremium" onClick={(e) => this._onSortClickAscForMyNBO(e, this.state.EstimatedPremiumTypeAsc)} />
+
                   </div></th>
                 <th style={{ padding: "5px 10px" }}>
                   <div style={{ display: "flex" }}>Brokerage %
-                    <IconButton id="Brokerage" style={{ color: "Black", display: this.state.BrokerageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="BrokeragePercentage" onClick={(e) => this._onSortClickAscForMyNBO('BrokeragePercentage', e)} />
-                    <IconButton id="Brokerage" style={{ color: "Black", display: this.state.BrokerageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="BrokeragePercentage" onClick={(e) => this._onSortClickDescForMyNBO('BrokeragePercentage', e)} />
+                    <IconButton id="Brokerage" style={{ color: "Black" }} iconProps={this.state.BrokerageTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="BrokeragePercentage" onClick={(e) => this._onSortClickAscForMyNBO(e, this.state.BrokerageTypeAsc)} />
                   </div></th>
                 <th style={{ padding: "5px 10px" }}>
                   <div style={{ display: "flex" }}>Estimated Brokerage
-                    <IconButton id="EstimatedBrokerage" style={{ color: "Black", display: this.state.EstimatedBrokerageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="EstimatedBrokerage" onClick={(e) => this._onSortClickAscForMyNBO('EstimatedBrokerage', e)} />
-                    <IconButton id="EstimatedBrokerage" style={{ color: "Black", display: this.state.EstimatedBrokerageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="EstimatedBrokerage" onClick={(e) => this._onSortClickDescForMyNBO('EstimatedBrokerage', e)} />
+
                   </div></th>
                 <th style={{ padding: "5px 10px", }}>
                   <div style={{ display: "flex" }}>NBO Stage
-                    <IconButton id="NBOStage" style={{ color: "Black", display: this.state.NBOStageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="NBOStage" onClick={(e) => this._onSortClickAscForMyNBO('NBOStage', e)} />
-                    <IconButton id="NBOStage" style={{ color: "Black", display: this.state.NBOStageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="NBOStage" onClick={(e) => this._onSortClickDescForMyNBO('NBOStage', e)} />
+                    <IconButton id="NBOStage" style={{ color: "Black" }} iconProps={this.state.NBOStageTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="NBOStage" onClick={(e) => this._onSortClickAscForMyNBO(e, this.state.NBOStageTypeAsc)} />
                   </div></th>
                 <th style={{ padding: "5px 10px", }}>
                   <div style={{ display: "flex" }}>Weighted Brokerage
-                    <IconButton id="WeightedBrokerage" style={{ color: "Black", display: this.state.WeightedBrokerageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="WeightedBrokerage" onClick={(e) => this._onSortClickAscForMyNBO('WeightedBrokerage', e)} />
-                    <IconButton id="WeightedBrokerage" style={{ color: "Black", display: this.state.WeightedBrokerageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="WeightedBrokerage" onClick={(e) => this._onSortClickDescForMyNBO('WeightedBrokerage', e)} />
+                    <IconButton id="WeightedBrokerage" style={{ color: "Black", }} iconProps={this.state.WeightedBrokerageTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="WeightedBrokerage" onClick={(e) => this._onSortClickAscForMyNBO(e, this.state.WeightedBrokerageTypeAsc)} />
                   </div></th>
                 <th style={{ padding: "5px 10px", }}>
                   <div style={{ display: "flex" }}>Fees If Any
-                    <IconButton id="FeesIfAny" style={{ color: "Black", display: this.state.FeesIfAnyTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="FeesIfAny" onClick={(e) => this._onSortClickAscForMyNBO('FeesIfAny', e)} />
-                    <IconButton id="FeesIfAny" style={{ color: "Black", display: this.state.FeesIfAnyTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="FeesIfAny" onClick={(e) => this._onSortClickDescForMyNBO('FeesIfAny', e)} />
+                    <IconButton id="FeesIfAny" style={{ color: "Black" }} iconProps={this.state.FeesIfAnyTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="FeesIfAny" onClick={(e) => this._onSortClickAscForMyNBO(e, this.state.FeesIfAnyTypeAsc)} />
                   </div></th>
                 <th style={{ padding: "5px 10px", }}>
                   <div style={{ display: "flex" }}>Compliance Cleared
-                    <IconButton id="ComplianceCleared" style={{ color: "Black", display: this.state.ComplianceClearedTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="ComplianceCleared" onClick={(e) => this._onSortClickAscForMyNBO('ComplianceCleared', e)} />
-                    <IconButton id="ComplianceCleared" style={{ color: "Black", display: this.state.ComplianceClearedTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="ComplianceCleared" onClick={(e) => this._onSortClickDescForMyNBO('ComplianceCleared', e)} />
+                    <IconButton id="ComplianceCleared" style={{ color: "Black" }} iconProps={this.state.ComplianceClearedTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="ComplianceCleared" onClick={(e) => this._onSortClickAscForMyNBO(e, this.state.ComplianceClearedTypeAsc)} />
                   </div></th>
-
               </tr>
               {currentItems.map((items, key) => {
                 return (
@@ -5528,70 +5005,66 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
                 <th style={{ padding: "5px 10px", }}>View Documents</th>
                 <th style={{ padding: "5px 10px" }}> <div style={{ display: "flex" }}>
                   Opportunity Type
-                  <IconButton id="OpportunityType" style={{ color: "Black", display: this.state.sortOppurtunityTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="OpportunityType" onClick={(e) => this._onSortClickAscForSameDept('OpportunityType', e)} />
-                  <IconButton id="OpportunityType" style={{ color: "Black", display: this.state.sortOppurtunityTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="OpportunityType" onClick={(e) => this._onSortClickDescForSameDept('OpportunityType', e)} />
-
+                  <IconButton id="OpportunityType" style={{ color: "Black", }} iconProps={this.state.sortOppurtunityTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="OpportunityType" onClick={(e) => this._onSortClickAscForSameDept(e, this.state.sortOppurtunityTypeAsc)} />
                 </div></th>
                 <th style={{ padding: "5px 10px" }}>  <div style={{ display: "flex" }}>Source
-                  <IconButton id="Source" style={{ color: "Black", display: this.state.SourceTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Source" onClick={(e) => this._onSortClickAscForSameDept('Source', e)} />
-                  <IconButton id="Source" style={{ color: "Black", display: this.state.SourceTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Source" onClick={(e) => this._onSortClickDescForSameDept('Source', e)} />
+                  <IconButton id="Source" style={{ color: "Black" }} iconProps={this.state.SourceTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="Source" onClick={(e) => this._onSortClickAscForSameDept(e, this.state.SourceTypeAsc)} />
 
                 </div></th>
                 <th style={{ padding: "5px 10px" }}><div style={{ display: "flex" }}> Industry
-                  <IconButton id="Industry" style={{ color: "Black", display: this.state.IndustryTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Industry" onClick={(e) => this._onSortClickAscForSameDept('Industry', e)} />
-                  <IconButton id="Industry" style={{ color: "Black", display: this.state.IndustryTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Industry" onClick={(e) => this._onSortClickDescForSameDept('Industry', e)} />
+                  <IconButton id="Industry" style={{ color: "Black" }} iconProps={this.state.IndustryTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="Industry" onClick={(e) => this._onSortClickAscForSameDept(e, this.state.IndustryTypeAsc)} />
+
                 </div></th>
                 <th style={{ padding: "5px 10px" }}> <div style={{ display: "flex" }}>Client Name
-                  <IconButton id="ClientName" style={{ color: "Black", display: this.state.ClientNameTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Title" onClick={(e) => this._onSortClickAscForSameDept('Title', e)} />
-                  <IconButton id="ClientName" style={{ color: "Black", display: this.state.ClientNameTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Title" onClick={(e) => this._onSortClickDescForSameDept('Title', e)} />
+                  <IconButton id="Title" style={{ color: "Black" }} iconProps={this.state.ClientNameTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="Title" onClick={(e) => this._onSortClickAscForSameDept(e, this.state.ClientNameTypeAsc)} />
+
                 </div> </th>
                 <th style={{ padding: "5px 10px", }}><div style={{ display: "flex" }}>Class of Insurance
-                  <IconButton id="ClassOfInsurance" style={{ color: "Black", display: this.state.ClassOfInsuranceTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="ClassOfInsurance" onClick={(e) => this._onSortClickAscForSameDept('ClassOfInsurance', e)} />
-                  <IconButton id="ClassOfInsurance" style={{ color: "Black", display: this.state.ClassOfInsuranceTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="ClassOfInsurance" onClick={(e) => this._onSortClickDescForSameDept('ClassOfInsurance', e)} />
+                  <IconButton id="ClassOfInsurance" style={{ color: "Black" }} iconProps={this.state.ClassOfInsuranceTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="ClassOfInsurance" onClick={(e) => this._onSortClickAscForSameDept(e, this.state.ClassOfInsuranceTypeAsc)} />
+
                 </div></th>
                 <th style={{ padding: "5px 10px", }}> <div style={{ display: "flex" }}>Est Start Date
-                  <IconButton id="EstimatedStartDate" style={{ color: "Black", display: this.state.EstStartDateTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="EstimatedStartDate" onClick={(e) => this._onSortClickAscForSameDept('EstimatedStartDate', e)} />
-                  <IconButton id="EstimatedStartDate" style={{ color: "Black", display: this.state.EstStartDateTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="EstimatedStartDate" onClick={(e) => this._onSortClickDescForSameDept('EstimatedStartDate', e)} />
+                  <IconButton id="EstimatedStartDate" style={{ color: "Black" }} iconProps={this.state.EstStartDateTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="EstimatedStartDate" onClick={(e) => this._onSortClickAscForSameDept(e, this.state.EstStartDateTypeAsc)} />
+
                 </div></th>
                 <th style={{ padding: "5px 10px", }}> <div style={{ display: "flex" }}>Comments
-                  <IconButton id="Comments" style={{ color: "Black", display: this.state.CommentsTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Comments" onClick={(e) => this._onSortClickAscForSameDept('Comments', e)} />
-                  <IconButton id="Comments" style={{ color: "Black", display: this.state.CommentsTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Comments" onClick={(e) => this._onSortClickDescForSameDept('Comments', e)} />
+
                 </div></th>
                 <th style={{ padding: "5px 10px", }}><div style={{ display: "flex" }}>Estimated Premium
-                  <IconButton id="EstimatedPremium" style={{ color: "Black", display: this.state.EstimatedPremiumTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="EstimatedPremium" onClick={(e) => this._onSortClickAscForSameDept('EstimatedPremium', e)} />
-                  <IconButton id="EstimatedPremium" style={{ color: "Black", display: this.state.EstimatedPremiumTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="EstimatedPremium" onClick={(e) => this._onSortClickDescForSameDept('EstimatedPremium', e)} />
+                  <IconButton id="EstimatedPremium" style={{ color: "Black" }} iconProps={this.state.EstimatedPremiumTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="EstimatedPremium" onClick={(e) => this._onSortClickAscForSameDept(e, this.state.EstimatedPremiumTypeAsc)} />
+
                 </div></th>
                 <th style={{ padding: "5px 10px" }}><div style={{ display: "flex" }}>Brokerage %
-                  <IconButton id="Brokerage" style={{ color: "Black", display: this.state.BrokerageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="BrokeragePercentage" onClick={(e) => this._onSortClickAscForSameDept('BrokeragePercentage', e)} />
-                  <IconButton id="Brokerage" style={{ color: "Black", display: this.state.BrokerageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="BrokeragePercentage" onClick={(e) => this._onSortClickDescForSameDept('BrokeragePercentage', e)} />
+                  <IconButton id="Brokerage" style={{ color: "Black" }} iconProps={this.state.BrokerageTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="BrokeragePercentage" onClick={(e) => this._onSortClickAscForSameDept(e, this.state.BrokerageTypeAsc)} />
+
                 </div></th>
                 <th style={{ padding: "5px 10px" }}><div style={{ display: "flex" }}>Estimated Brokerage
-                  <IconButton id="EstimatedBrokerage" style={{ color: "Black", display: this.state.EstimatedBrokerageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="EstimatedBrokerage" onClick={(e) => this._onSortClickAscForSameDept('EstimatedBrokerage', e)} />
-                  <IconButton id="EstimatedBrokerage" style={{ color: "Black", display: this.state.EstimatedBrokerageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="EstimatedBrokerage" onClick={(e) => this._onSortClickDescForSameDept('EstimatedBrokerage', e)} />
+
+
                 </div></th>
                 <th style={{ padding: "5px 10px" }}><div style={{ display: "flex" }}>NBO Stage
-                  <IconButton id="NBOStage" style={{ color: "Black", display: this.state.NBOStageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="NBOStage" onClick={(e) => this._onSortClickAscForSameDept('NBOStage', e)} />
-                  <IconButton id="NBOStage" style={{ color: "Black", display: this.state.NBOStageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="NBOStage" onClick={(e) => this._onSortClickDescForSameDept('NBOStage', e)} />
+                  <IconButton id="NBOStage" style={{ color: "Black" }} iconProps={this.state.NBOStageTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="NBOStage" onClick={(e) => this._onSortClickAscForSameDept(e, this.state.NBOStageTypeAsc)} />
+
                 </div></th>
                 <th style={{ padding: "5px 10px", }}> <div style={{ display: "flex" }}>Weighted Brokerage
-                  <IconButton id="WeightedBrokerage" style={{ color: "Black", display: this.state.WeightedBrokerageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="WeightedBrokerage" onClick={(e) => this._onSortClickAscForSameDept('WeightedBrokerage', e)} />
-                  <IconButton id="WeightedBrokerage" style={{ color: "Black", display: this.state.WeightedBrokerageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="WeightedBrokerage" onClick={(e) => this._onSortClickDescForSameDept('WeightedBrokerage', e)} />
+                  <IconButton id="WeightedBrokerage" style={{ color: "Black", }} iconProps={this.state.WeightedBrokerageTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="WeightedBrokerage" onClick={(e) => this._onSortClickAscForSameDept(e, this.state.WeightedBrokerageTypeAsc)} />
+
                 </div></th>
                 <th style={{ padding: "5px 10px", }}> <div style={{ display: "flex" }}>Fees If Any
-                  <IconButton id="FeesIfAny" style={{ color: "Black", display: this.state.FeesIfAnyTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="FeesIfAny" onClick={(e) => this._onSortClickAscForSameDept('FeesIfAny', e)} />
-                  <IconButton id="FeesIfAny" style={{ color: "Black", display: this.state.FeesIfAnyTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="FeesIfAny" onClick={(e) => this._onSortClickDescForSameDept('FeesIfAny', e)} />
+                  <IconButton id="FeesIfAny" style={{ color: "Black" }} iconProps={this.state.FeesIfAnyTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="FeesIfAny" onClick={(e) => this._onSortClickAscForSameDept(e, this.state.FeesIfAnyTypeAsc)} />
+
                 </div></th>
                 <th style={{ padding: "5px 10px", }}><div style={{ display: "flex" }}>Compliance Cleared
-                  <IconButton id="ComplianceCleared" style={{ color: "Black", display: this.state.ComplianceClearedTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="ComplianceCleared" onClick={(e) => this._onSortClickAscForSameDept('ComplianceCleared', e)} />
-                  <IconButton id="ComplianceCleared" style={{ color: "Black", display: this.state.ComplianceClearedTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="ComplianceCleared" onClick={(e) => this._onSortClickDescForSameDept('ComplianceCleared', e)} />
+                  <IconButton id="ComplianceCleared" style={{ color: "Black" }} iconProps={this.state.ComplianceClearedTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="ComplianceCleared" onClick={(e) => this._onSortClickAscForSameDept(e, this.state.ComplianceClearedTypeAsc)} />
+
                 </div></th>
                 <th style={{ padding: "5px 10px", }}> <div style={{ display: "flex" }}>Department
-                  <IconButton id="Department" style={{ color: "Black", display: this.state.DepartmentTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Department" onClick={(e) => this._onSortClickAscForSameDept('Department', e)} />
-                  <IconButton id="Department" style={{ color: "Black", display: this.state.DepartmentTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Department" onClick={(e) => this._onSortClickDescForSameDept('Department', e)} />
+                  <IconButton id="Department" style={{ color: "Black" }} iconProps={this.state.DepartmentTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="Department" onClick={(e) => this._onSortClickAscForSameDept(e, this.state.DepartmentTypeAsc)} />
+
                 </div></th>
                 <th style={{ padding: "5px 10px", }}><div style={{ display: "flex" }}>Created By
-                  <IconButton id="CreatedBy" style={{ color: "Black", display: this.state.CreatedByTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Author" onClick={(e) => this._onSortClickAscForSameDept('Author', e)} />
-                  <IconButton id="CreatedBy" style={{ color: "Black", display: this.state.CreatedByTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Author" onClick={(e) => this._onSortClickDescForSameDept('Author', e)} />
+                  <IconButton id="Author" style={{ color: "Black", }} iconProps={this.state.CreatedByTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="Author" onClick={(e) => this._onSortClickAscForSameDept(e, this.state.CreatedByTypeAsc)} />
+
                 </div></th>
 
               </tr>
@@ -5659,82 +5132,63 @@ export default class NboDetailList extends React.Component<INboDetailListProps, 
                 <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin === "true" || this.teamType === "Compliance Team" ? " " : "none") }}>View Documents</th>
                 <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin === "true" || this.teamType === "Compliance Team" ? " " : "none") }}><div style={{ display: "flex" }}>
                   Opportunity Type
-                  <IconButton id="OpportunityType" style={{ color: "Black", display: this.state.sortOppurtunityTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="OpportunityType" onClick={(e) => this._onSortClickAscForOtherDept('OpportunityType', e)} />
-                  <IconButton id="OpportunityType" style={{ color: "Black", display: this.state.sortOppurtunityTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="OpportunityType" onClick={(e) => this._onSortClickDescForOtherDept('OpportunityType', e)} />
+                  <IconButton id="OpportunityType" style={{ color: "Black", }} iconProps={this.state.sortOppurtunityTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="OpportunityType" onClick={(e) => this._onSortClickAscForOtherDept(e, this.state.sortOppurtunityTypeAsc)} />
                 </div>
                 </th>
                 <th style={{ padding: "5px 10px" }}><div style={{ display: "flex" }}>Source
-                  <IconButton id="Source" style={{ color: "Black", display: this.state.SourceTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Source" onClick={(e) => this._onSortClickAscForOtherDept('Source', e)} />
-                  <IconButton id="Source" style={{ color: "Black", display: this.state.SourceTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Source" onClick={(e) => this._onSortClickDescForOtherDept('Source', e)} />
-
+                  <IconButton id="Source" style={{ color: "Black" }} iconProps={this.state.SourceTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="Source" onClick={(e) => this._onSortClickAscForOtherDept(e, this.state.SourceTypeAsc)} />
                 </div>
                 </th>
                 <th style={{ padding: "5px 10px" }}><div style={{ display: "flex" }}> Industry
-                  <IconButton id="Industry" style={{ color: "Black", display: this.state.IndustryTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Industry" onClick={(e) => this._onSortClickAscForOtherDept('Industry', e)} />
-                  <IconButton id="Industry" style={{ color: "Black", display: this.state.IndustryTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Industry" onClick={(e) => this._onSortClickDescForOtherDept('Industry', e)} />
+                  <IconButton id="Industry" style={{ color: "Black" }} iconProps={this.state.IndustryTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="Industry" onClick={(e) => this._onSortClickAscForOtherDept(e, this.state.IndustryTypeAsc)} />
                 </div>
                 </th>
                 <th style={{ padding: "5px 10px" }}><div style={{ display: "flex" }}>Client Name
-                  <IconButton id="Title" style={{ color: "Black", display: this.state.ClientNameTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Title" onClick={(e) => this._onSortClickAscForOtherDept('Title', e)} />
-                  <IconButton id="Title" style={{ color: "Black", display: this.state.ClientNameTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Title" onClick={(e) => this._onSortClickDescForOtherDept('Title', e)} />
+                  <IconButton id="Title" style={{ color: "Black" }} iconProps={this.state.ClientNameTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="Title" onClick={(e) => this._onSortClickAscForOtherDept(e, this.state.ClientNameTypeAsc)} />
                 </div>
                 </th>
                 <th style={{ padding: "5px 10px", }}><div style={{ display: "flex" }}>Class of Insurance
-                  <IconButton id="ClassOfInsurance" style={{ color: "Black", display: this.state.ClassOfInsuranceTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="ClassOfInsurance" onClick={(e) => this._onSortClickAscForOtherDept('ClassOfInsurance', e)} />
-                  <IconButton id="ClassOfInsurance" style={{ color: "Black", display: this.state.ClassOfInsuranceTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="ClassOfInsurance" onClick={(e) => this._onSortClickDescForOtherDept('ClassOfInsurance', e)} />
+                  <IconButton id="ClassOfInsurance" style={{ color: "Black" }} iconProps={this.state.ClassOfInsuranceTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="ClassOfInsurance" onClick={(e) => this._onSortClickAscForOtherDept(e, this.state.ClassOfInsuranceTypeAsc)} />
                 </div>
                 </th>
                 <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}><div style={{ display: "flex" }}>Est Start Date
-                  <IconButton id="EstimatedStartDate" style={{ color: "Black", display: this.state.EstStartDateTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="EstimatedStartDate" onClick={(e) => this._onSortClickAscForOtherDept('EstimatedStartDate', e)} />
-                  <IconButton id="EstimatedStartDate" style={{ color: "Black", display: this.state.EstStartDateTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="EstimatedStartDate" onClick={(e) => this._onSortClickDescForOtherDept('EstimatedStartDate', e)} />
+                  <IconButton id="EstimatedStartDate" style={{ color: "Black" }} iconProps={this.state.EstStartDateTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="EstimatedStartDate" onClick={(e) => this._onSortClickAscForOtherDept(e, this.state.EstStartDateTypeAsc)} />
                 </div>
 
                 </th>
                 <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}> <div style={{ display: "flex" }}>Comments
-                  <IconButton id="Comments" style={{ color: "Black", display: this.state.CommentsTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Comments" onClick={(e) => this._onSortClickAscForOtherDept('Comments', e)} />
-                  <IconButton id="Comments" style={{ color: "Black", display: this.state.CommentsTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Comments" onClick={(e) => this._onSortClickDescForOtherDept('Comments', e)} />
                 </div>
                 </th>
                 <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}><div style={{ display: "flex" }}>Estimated Premium
-                  <IconButton id="EstimatedPremium" style={{ color: "Black", display: this.state.EstimatedPremiumTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="EstimatedPremium" onClick={(e) => this._onSortClickAscForOtherDept('EstimatedPremium', e)} />
-                  <IconButton id="EstimatedPremium" style={{ color: "Black", display: this.state.EstimatedPremiumTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="EstimatedPremium" onClick={(e) => this._onSortClickDescForOtherDept('EstimatedPremium', e)} />
+                  <IconButton id="EstimatedPremium" style={{ color: "Black" }} iconProps={this.state.EstimatedPremiumTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="EstimatedPremium" onClick={(e) => this._onSortClickAscForOtherDept(e, this.state.EstimatedPremiumTypeAsc)} />
                 </div>
                 </th>
                 <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}><div style={{ display: "flex" }}>Brokerage %
-                  <IconButton id="Brokerage" style={{ color: "Black", display: this.state.BrokerageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="BrokeragePercentage" onClick={(e) => this._onSortClickAscForOtherDept('BrokeragePercentage', e)} />
-                  <IconButton id="Brokerage" style={{ color: "Black", display: this.state.BrokerageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="BrokeragePercentage" onClick={(e) => this._onSortClickDescForOtherDept('BrokeragePercentage', e)} />
+                  <IconButton id="Brokerage" style={{ color: "Black" }} iconProps={this.state.BrokerageTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="BrokeragePercentage" onClick={(e) => this._onSortClickAscForOtherDept(e, this.state.BrokerageTypeAsc)} />
                 </div>
                 </th>
                 <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}><div style={{ display: "flex" }}>Estimated Brokerage
-                  <IconButton id="EstimatedBrokerage" style={{ color: "Black", display: this.state.EstimatedBrokerageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="EstimatedBrokerage" onClick={(e) => this._onSortClickAscForOtherDept('EstimatedBrokerage', e)} />
-                  <IconButton id="EstimatedBrokerage" style={{ color: "Black", display: this.state.EstimatedBrokerageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="EstimatedBrokerage" onClick={(e) => this._onSortClickDescForOtherDept('EstimatedBrokerage', e)} />
                 </div>
                 </th>
                 <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}><div style={{ display: "flex" }}>NBO Stage
-                  <IconButton id="NBOStage" style={{ color: "Black", display: this.state.NBOStageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="NBOStage" onClick={(e) => this._onSortClickAscForOtherDept('NBOStage', e)} />
-                  <IconButton id="NBOStage" style={{ color: "Black", display: this.state.NBOStageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="NBOStage" onClick={(e) => this._onSortClickDescForOtherDept('NBOStage', e)} />
+                  <IconButton id="NBOStage" style={{ color: "Black" }} iconProps={this.state.NBOStageTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="NBOStage" onClick={(e) => this._onSortClickAscForOtherDept(e, this.state.NBOStageTypeAsc)} />
                 </div>
                 </th>
                 <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}><div style={{ display: "flex" }}>Weighted Brokerage
-                  <IconButton id="WeightedBrokerage" style={{ color: "Black", display: this.state.WeightedBrokerageTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="WeightedBrokerage" onClick={(e) => this._onSortClickAscForOtherDept('WeightedBrokerage', e)} />
-                  <IconButton id="WeightedBrokerage" style={{ color: "Black", display: this.state.WeightedBrokerageTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="WeightedBrokerage" onClick={(e) => this._onSortClickDescForOtherDept('WeightedBrokerage', e)} />
+                  <IconButton id="WeightedBrokerage" style={{ color: "Black", }} iconProps={this.state.WeightedBrokerageTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="WeightedBrokerage" onClick={(e) => this._onSortClickAscForOtherDept(e, this.state.WeightedBrokerageTypeAsc)} />
                 </div></th>
                 <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}> <div style={{ display: "flex" }}>Fees If Any
-                  <IconButton id="FeesIfAny" style={{ color: "Black", display: this.state.FeesIfAnyTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="FeesIfAny" onClick={(e) => this._onSortClickAscForOtherDept('FeesIfAny', e)} />
-                  <IconButton id="FeesIfAny" style={{ color: "Black", display: this.state.FeesIfAnyTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="FeesIfAny" onClick={(e) => this._onSortClickDescForOtherDept('FeesIfAny', e)} />
+                  <IconButton id="FeesIfAny" style={{ color: "Black" }} iconProps={this.state.FeesIfAnyTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="FeesIfAny" onClick={(e) => this._onSortClickAscForOtherDept(e, this.state.FeesIfAnyTypeAsc)} />
                 </div>
                 </th>
                 <th style={{ padding: "5px 10px", display: (this.state.isNBOAdmin == "true" || this.teamType == "Compliance Team" ? " " : "none") }}> <div style={{ display: "flex" }}>Compliance Cleared
-                  <IconButton id="ComplianceCleared" style={{ color: "Black", display: this.state.ComplianceClearedTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="ComplianceCleared" onClick={(e) => this._onSortClickAscForOtherDept('ComplianceCleared', e)} />
-                  <IconButton id="ComplianceCleared" style={{ color: "Black", display: this.state.ComplianceClearedTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="ComplianceCleared" onClick={(e) => this._onSortClickDescForOtherDept('ComplianceCleared', e)} />
+                  <IconButton id="ComplianceCleared" style={{ color: "Black" }} iconProps={this.state.ComplianceClearedTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="ComplianceCleared" onClick={(e) => this._onSortClickAscForOtherDept(e, this.state.ComplianceClearedTypeAsc)} />
                 </div></th>
                 <th style={{ padding: "5px 10px" }}><div style={{ display: "flex" }}>Department
-                  <IconButton id="Department" style={{ color: "Black", display: this.state.DepartmentTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Department" onClick={(e) => this._onSortClickAscForOtherDept('Department', e)} />
-                  <IconButton id="Department" style={{ color: "Black", display: this.state.DepartmentTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Department" onClick={(e) => this._onSortClickDescForOtherDept('Department', e)} />
+                  <IconButton id="Department" style={{ color: "Black" }} iconProps={this.state.DepartmentTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="Department" onClick={(e) => this._onSortClickAscForOtherDept(e, this.state.DepartmentTypeAsc)} />
                 </div></th>
                 <th style={{ padding: "5px 10px", }}><div style={{ display: "flex" }}>Created By
-                  <IconButton id="Author" style={{ color: "Black", display: this.state.CreatedByTypeAsc }} iconProps={SortAcsIcon} title="sort" ariaLabel="Author" onClick={(e) => this._onSortClickAscForOtherDept('Author', e)} />
-                  <IconButton id="Author" style={{ color: "Black", display: this.state.CreatedByTypeDesc }} iconProps={SortDescIcon} title="sort" ariaLabel="Author" onClick={(e) => this._onSortClickDescForOtherDept('Author', e)} />
+                  <IconButton id="Author" style={{ color: "Black", }} iconProps={this.state.CreatedByTypeAsc == 'asc' ? SortAcsIcon : SortDescIcon} title="sort" ariaLabel="Author" onClick={(e) => this._onSortClickAscForOtherDept(e, this.state.CreatedByTypeAsc)} />
                 </div></th>
               </tr>
               {currentItems.map((items, key) => {
